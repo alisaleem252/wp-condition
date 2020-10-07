@@ -1,0 +1,16 @@
+#wpfixit_conditions td > h2 {
+    margin: -18px -18px 33px -18px;
+    vertical-align: top;
+    background: #e6e6e6;
+    min-height: 55px;
+    padding: 10px;
+}
+
+#wpfixit_conditions td {
+    background: white;
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    vertical-align: top;
+	padding: 20px;
+	min-width: 300px;
+}
