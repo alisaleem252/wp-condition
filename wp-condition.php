@@ -3,8 +3,8 @@
 Plugin Name: WordPress Site Condition
 Plugin URI: https://gigsix.com
 Description: Display WP-Condition in Chart for Database Performance, Memory Performance, Site Performance, and Social Performance. Requires PHP 5.2.0+
-Version: 1.5.0
-Author: zinger252
+Version: 2.0.0
+Author: alisaleem252
 Author URI: http://thesetemplates.info
 */
 
@@ -33,7 +33,7 @@ class WP_Page_Condition_Stats {
 		add_action( 'wp_enqueue_scripts', array( &$this, 'enqueue' ) );
 
 		// Where to store averages
-		$this->average_option = is_admin() ? 'wpfixit_con_admin_load_times' : 'wpfixit_con_load_times';
+		$this->average_option = is_admin() ? 'wpfixit_con_load_times' : 'wpfixit_con_load_times';
 	}
 
 	/**
@@ -48,14 +48,20 @@ class WP_Page_Condition_Stats {
 			update_option( $this->average_option, array() );
 			wp_safe_redirect(  wp_get_referer() );
 			exit;
-		}    	
+		} 
+		
+		if(is_admin())
+		return;
+		
 		$timer_stop 		= timer_stop(0);
 		$load_times			= array_filter( (array) get_option( $this->average_option ) );
-		$load_times[]		= $timer_stop;
+		$load_times[]		= array('time' => $timer_stop,'url'=>$_SERVER['REQUEST_URI']);
 		// Update load times
 		update_option( $this->average_option, $load_times );
 		if(count($load_times) > 70)
 		update_option( $this->average_option, array() );
+
+		
 		
 	}
 	function admin_menu() {
@@ -113,14 +119,17 @@ class WP_Page_Condition_Stats {
 		$memory_limit 		= round( $this->convert_bytes_to_hr( $this->let_to_num( WP_MEMORY_LIMIT ) ), 2 );
 		$load_times			= array_filter( (array) get_option( $this->average_option ) );
 
-		$load_times[]		= $timer_stop;
+		$load_times[]		= array('time' => $timer_stop,'url'=>$_SERVER['REQUEST_URI']);
 
-		// Update load times
-	//	update_option( $this->average_option, $load_times );
 
 		// Get average
-		if ( sizeof( $load_times ) > 0 )
-			$average_load_time = round( array_sum( $load_times ) / sizeof( $load_times ), 4 );
+		if ( sizeof( $load_times ) > 0 ){
+			$sum = 0;
+			foreach($load_times as $num => $load_time) {
+				$sum += $load_time[ 'time' ];
+			}
+			$average_load_time = round( $sum / sizeof( $load_times ), 4 );
+		}
 
 		// Display the info
 		?>
@@ -208,11 +217,17 @@ class WP_Page_Condition_Stats {
 	
 	new Chart(document.getElementById("siperform").getContext("2d"),{
 	type: 'line',
-    data : { labels: [<?php foreach ($load_times as $loadtime) echo $loadtime . ','?>
+    data : { labels: [<?php foreach ($load_times as $loadtime) echo $loadtime['time']  . ','?>
 										],
-			datasets : [{ data : [ <?php foreach ($load_times as $loadtime) echo $loadtime . ','?>  ],
+			datasets : [{ data : [ <?php foreach ($load_times as $loadtime) echo $loadtime['time']. ','?>  ],
 							backgroundColor : [<?php foreach ($load_times as $key => $loadtime) echo '"#D'.$key .'7041" , '?>],
 							label : 'Seconds'
+							
+							
+						},
+						{ data : [ <?php foreach ($load_times as $loadtime) echo '"'.$loadtime['url'] .'" ,'?>  ],
+							backgroundColor : [<?php foreach ($load_times as $key => $loadtime) echo '"#D'.$key .'7041" , '?>],
+							label : 'URL'
 							
 							
 						}]
@@ -228,6 +243,12 @@ class WP_Page_Condition_Stats {
    			<h1>Improve Performance</h1> 
             <p><a href="https://studio.envato.com/explore/wordpress-speed-optimization/47090-wordpress-speed-optimization-service" class="button-primary">Order Services</a></p>
             <p><a class="reset button-primary" style="background: #d83a3a; border-color: #d83a3a;" href="<?php echo add_query_arg( 'reset_wpfixit_con_stats', 1 ); ?>">Reset Statistics</a></p>
+			<p>This table also displays 404 urls of not found resoures, It captures only the last 70 requests.</p>
+			<table>
+			</tr>
+			
+			<?php foreach ($load_times as $loadtime) echo '<tr style="display: inline-grid;"><td>'.$loadtime['url'] . '</td><td> <strong> '.$loadtime['time']. '</strong> Seconds</td></tr>'?>
+			</table>
         </td>
         </tr>
         
