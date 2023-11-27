@@ -3,7 +3,7 @@
 Plugin Name: WordPress Site Condition
 Plugin URI: https://gigsix.com
 Description: Display WP-Condition in Chart for Database Performance, Memory Performance, Site Performance, and Social Performance. Requires PHP 5.2.0+
-Version: 2.0.0
+Version: 3.0.0
 Author: alisaleem252
 Author URI: http://thesetemplates.info
 */
@@ -60,13 +60,15 @@ class WP_Page_Condition_Stats {
 		update_option( $this->average_option, $load_times );
 		if(count($load_times) > 70)
 		update_option( $this->average_option, array() );
-
-		
 		
 	}
+
+
+
 	function admin_menu() {
 //		$this->display();
 		add_menu_page( 'WPFIXIT', 'WP Condition', 'manage_options', 'wp-conditions', array( &$this, 'display' ), 'dashicons-chart-line', 99 );
+		add_submenu_page( 'wp-conditions','Settings WP Conditions', 'Settings WP Conditions', 'manage_options', 'wp-conditions-settings', array( &$this, 'wp_conditions_settingsdisplay'));
 	}
 	/**
 	 * wp_head function.
@@ -102,6 +104,30 @@ class WP_Page_Condition_Stats {
 		wp_enqueue_script( 'wpfixit_con-script', plugins_url('Chart.min.js', __FILE__) );
 	}
 
+
+	function wp_conditions_settingsdisplay() {
+		if(isset($_POST['wp_conditions_settings']) && isset($_POST['wscwpc-Save_Settings']) && wp_verify_nonce( $_POST['wscwpc-Save_Settings'],'Save_Settings')) {
+			update_option('wsc_wp_conditions_settings',$_POST['wp_conditions_settings']);
+		}
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
+		?>
+		<h2>Settings (WP Conditions)</h2>
+		<div class="wrap">
+			<form method="post">
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
+						<td><input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : '')?>" class="regular-text"></td>
+					</tr>
+				</table>
+				<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+				<?php  wp_nonce_field('Save_Settings', 'wscwpc-Save_Settings'); ?>
+			</form>
+		</div>
+
+<?php
+	} // func wp_conditions_settingsdisplay
+
 	/**
 	 * display function.
 	 *
@@ -109,14 +135,36 @@ class WP_Page_Condition_Stats {
 	 */
 	function display() {
 		global $wpdb;
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
+		if(!isset($wp_conditions_settings['wpcond_googleapis_key']) || trim($wp_conditions_settings['wpcond_googleapis_key']) == '')
+		return;
+		$key = $wp_conditions_settings['wpcond_googleapis_key'];
+		$siteurl = get_bloginfo('url');  // 'https://github.com' get_bloginfo('url')
+		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key";
+		
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		$result = curl_exec($curl);
+		$result = json_decode($result,true);
+
+		//echo '<pre>';print_r($result);echo '</pre>';
+
+		// // update_option('mam_test_res_googleapis',$result);
+	
+		// // 	//$result = $http->get( $url, $args );
+		//  	echo '<pre>';print_r(json_decode($result,true));echo '</pre>';
+		//var_dump(wp_remote_get("https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=http://localhost/wp4/wp4-for-wp-bakery-post-1/&key=AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic"));
 		// Get values we're displaying
 		include( plugin_dir_path( __FILE__ ) . 'lib/social.php');         
 		$obj=new WP_Condition_shareCount(site_url()); 
 		$timer_stop 		= timer_stop(0);
 		$query_count 		= get_num_queries();
-		$memory_usage 		= round( $this->convert_bytes_to_hr( memory_get_usage() ), 2 );
-		$memory_peak_usage 	= round( $this->convert_bytes_to_hr( memory_get_peak_usage() ), 2 );
-		$memory_limit 		= round( $this->convert_bytes_to_hr( $this->let_to_num( WP_MEMORY_LIMIT ) ), 2 );
+		$memory_usage 		= round( (int) $this->convert_bytes_to_hr( memory_get_usage() ), 2 );
+		$memory_peak_usage 	= round( (int) $this->convert_bytes_to_hr( memory_get_peak_usage() ), 2 );
+		$memory_limit 		= round( (int) $this->convert_bytes_to_hr( $this->let_to_num( WP_MEMORY_LIMIT ) ), 2 );
 		$load_times			= array_filter( (array) get_option( $this->average_option ) );
 
 		$load_times[]		= array('time' => $timer_stop,'url'=>$_SERVER['REQUEST_URI']);
@@ -193,7 +241,7 @@ class WP_Page_Condition_Stats {
 											 }] 
 											 } }
 					);
-				
+
 		/*
 		 [
 				{
@@ -361,7 +409,383 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 
         
         </tr>
-        
+	<?php if(isset($result['id'])){ 
+		$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
+		$clss_meval_str = strlen($clss_meval) <= 3 ? $clss_meval/100 : $clss_meval/1000;
+
+		$ttfb_meval = $result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['percentile'];
+		$ttfb_meval_str = round($ttfb_meval/1000,1);
+
+		$fcp_meval = $result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['percentile'];
+		$fcp_meval_str = round($fcp_meval/1000,1);
+
+		$fid_meval = $result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['percentile'];
+		$fid_meval_str = $fid_meval;
+
+		$itnp_meval = $result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['percentile'];
+		$itnp_meval_str = $itnp_meval;
+
+		$lcp_meval = $result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['percentile'];
+		$lcp_meval_str =  round($lcp_meval/1000,1);
+
+		?>
+		<tr>
+			<td colspan="3"><h2>WebSite Performance</h2></td>
+		</tr>
+
+        <tr>
+			<td>
+			<canvas id="chart_clss" width="200" height="200"></canvas>
+<script>
+		
+	var clss = document.getElementById("chart_clss"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+	var clsstext = '<?php echo $clss_meval_str?>';
+
+	var clssdata = {
+	labels: ["CUMULATIVE LAYOUT SHIFT SCORE: ( "+clsstext+" )"],
+	datasets: [{
+		label: 'Fast',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][0]['max'])?>'],
+		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+	}, {
+		label: 'Average',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][1]['max'])?>'],
+		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+	}, {
+		label: 'Slow',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][2]['min'])?>'],
+		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+	},
+	{
+		label: 'Exists',
+		data: ['<?php echo $clss_meval ?>'],
+		backgroundColor: 'rgba(100,100,100,0.7)', // gray
+	}
+	]
+	};
+
+	var clss_config = {
+		type: 'bar',
+		data: clssdata,
+		options: {
+			// title: {
+     		// 		 display: true,
+      		// 		 text: clsstext
+    		// },
+			scales: {
+				yAxes: [{
+            			ticks: {
+                				beginAtZero: true
+            					}
+        				}]
+
+			}
+		}
+	};
+
+	new Chart(clss, clss_config);
+
+</script>				
+			</td>
+
+
+
+
+			<td>
+			<canvas id="chart_ttfb" width="200" height="200"></canvas>
+                <script>
+		
+	var ttfb = document.getElementById("chart_ttfb");
+	var ttfbtext = '<?php echo $ttfb_meval_str?> s';
+
+	var ttfbdata = {
+	labels: ['EXPERIMENTAL TIME TO FIRST BYTE: ( '+ttfbtext+' )'],
+	datasets: [{
+		label: 'Fast',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][0]['max'])?>'],
+		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+	}, {
+		label: 'Average',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][1]['max'])?>'],
+		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+	}, {
+		label: 'Slow',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][2]['min'])?>'],
+		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+	},
+	{
+		label: 'Exists',
+		data: ['<?php echo $ttfb_meval ?>'],
+		backgroundColor: 'rgba(100,100,100,0.7)', // gray
+	}
+	]
+	};
+
+	var ttfb_config = {
+		type: 'bar',
+		data: ttfbdata,
+		options: {			
+			// title: {
+     		// 		 display: true,
+      		// 		 text: ttfbtext
+    		// },
+			scales: {
+				yAxes: [{
+            			ticks: {
+                				beginAtZero: true
+            					}
+        				}]
+			}
+		}
+
+	};
+
+	new Chart(ttfb, ttfb_config);
+
+                </script>				
+			</td>
+
+
+
+
+			<td>
+			<canvas id="chart_fcp" width="200" height="200"></canvas>
+                <script>
+		
+	var fcp = document.getElementById("chart_fcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+	var fcptext = '<?php echo $fcp_meval_str?> s';
+
+	var fcpdata = {
+	labels: ['FIRST CONTENTFUL PAINT: ( '+fcptext+' )'],
+	datasets: [{
+		label: 'Fast',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
+		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+	}, {
+		label: 'Average',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
+		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+	}, {
+		label: 'Slow',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
+		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+	},
+	{
+		label: 'Exists',
+		data: ['<?php echo $fcp_meval ?>'],
+		backgroundColor: 'rgba(100,100,100,0.7)', // gray
+	}
+	]
+	};
+
+	var fcp_config = {
+		type: 'bar',
+		data: fcpdata,
+		options: {
+			// title: {
+     		// 		 display: true,
+      		// 		 text: fcptext
+    		// },
+			scales: {
+				yAxes: [{
+            			ticks: {
+                				beginAtZero: true
+            					}
+        				}]
+
+			}
+		}
+	};
+
+	new Chart(fcp, fcp_config);
+
+                </script>				
+			</td>
+		</tr>
+
+
+
+
+
+
+
+
+
+     
+        <tr>
+			<td>
+			<canvas id="chart_fid" width="200" height="200"></canvas>
+<script>
+		
+	var fid = document.getElementById("chart_fid"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+	var fidtext = '<?php echo $fid_meval_str?> ms';
+
+	var fiddata = {
+	labels: ['FIRST INPUT DELAY: ( '+fidtext+' )'],
+	datasets: [{
+		label: 'Fast',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][0]['max'])?>'],
+		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+	}, {
+		label: 'Average',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][1]['max'])?>'],
+		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+	}, {
+		label: 'Slow',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][2]['min'])?>'],
+		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+	},
+	{
+		label: 'Exists',
+		data: ['<?php echo $fid_meval ?>'],
+		backgroundColor: 'rgba(100,100,100,0.7)', // gray
+	}
+	]
+	};
+
+	var fid_config = {
+		type: 'bar',
+		data: fiddata,
+		options: {
+			// title: {
+     		// 		 display: true,
+      		// 		 text: fidtext
+    		// },
+			scales: {
+				yAxes: [{
+            			ticks: {
+                				beginAtZero: true
+            					}
+        				}]
+
+			}
+		}
+	};
+
+	new Chart(fid, fid_config);
+
+</script>				
+			</td>
+
+
+
+
+			<td>
+			<canvas id="chart_itnp" width="200" height="200"></canvas>
+                <script>
+		
+	var itnp = document.getElementById("chart_itnp"); 
+	var itnptext = '<?php echo $itnp_meval_str?> ms';
+
+
+	var itnpdata = {
+	labels: ['INTERACTION TO NEXT PAINT: ( '+itnptext+' )'],
+	datasets: [{
+		label: 'Fast',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][0]['max'])?>'],
+		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+	}, {
+		label: 'Average',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][1]['max'])?>'],
+		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+	}, {
+		label: 'Slow',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][2]['min'])?>'],
+		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+	},
+	{
+		label: 'Exists',
+		data: ['<?php echo $itnp_meval ?>'],
+		backgroundColor: 'rgba(100,100,100,0.7)', // gray
+	}
+	]
+	};
+
+	var itnp_config = {
+		type: 'bar',
+		data: itnpdata,
+		options: {
+			// title: {
+     		// 		 display: true,
+      		// 		 text: itnptext
+    		// },
+			scales: {
+				yAxes: [{
+            			ticks: {
+                				beginAtZero: true
+            					}
+        				}]
+
+			}
+		}
+
+	};
+
+	new Chart(itnp, itnp_config);
+
+                </script>				
+			</td>
+
+
+
+
+			<td>
+			<canvas id="chart_lcp" width="200" height="200"></canvas>
+                <script>
+		
+	var lcp = document.getElementById("chart_lcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+	var lcptext = '<?php echo $lcp_meval_str?> s';
+
+	var lcpdata = {
+	labels: ['LARGEST CONTENTFUL PAINT: ( '+lcptext+' )'],
+	datasets: [{
+		label: 'Fast',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
+		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+	}, {
+		label: 'Average',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
+		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+	}, {
+		label: 'Slow',
+		data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
+		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+	},
+	{
+		label: 'Exists',
+		data: ['<?php echo $lcp_meval ?>'],
+		backgroundColor: 'rgba(100,100,100,0.7)', // gray
+	}
+	]
+	};
+
+	var lcp_config = {
+		type: 'bar',
+		data: lcpdata,
+		options: {
+			// title: {
+     		// 		 display: true,
+      		// 		 text: lcptext
+    		// },
+			scales: {
+				yAxes: [{
+            			ticks: {
+                				beginAtZero: true
+            					}
+        				}]
+
+			}
+		}
+	};
+
+	new Chart(lcp, lcp_config);
+
+                </script>				
+			</td>
+		</tr>   
+
+
+	<?php } // if(isset($result['id'])){ ?>
         </tbody>
         </table>
 
