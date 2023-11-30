@@ -949,7 +949,7 @@ SECTION START PERFORMANCE METRICS
 		
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
 			if(isset($audits_arr['details']["type"]) &&  trim($audits_arr['score']) != '' && $audits_arr['score'] > 0.9){?>
-				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox">
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
 					<div class="postbox-header">
 						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
 						<button type="button" class="handlediv">&vArr;</button>
