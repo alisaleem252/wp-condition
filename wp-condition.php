@@ -3,7 +3,7 @@
 Plugin Name: WordPress Site Condition
 Plugin URI: https://gigsix.com
 Description: Display WP-Condition in Chart for Database Performance, Memory Performance, Site Performance, and Social Performance. Requires PHP 5.2.0+
-Version: 3.0.0
+Version: 3.5.2
 Author: alisaleem252
 Author URI: http://thesetemplates.info
 */
@@ -91,7 +91,8 @@ class WP_Page_Condition_Stats {
 	 */
 	function wp_footer() {
 	//	$this->display();
-
+		wp_enqueue_script('dashboard');
+		//wp_enqueue_script( 'jquery-ui-sortable');
 	}
 
 	/**
@@ -101,7 +102,7 @@ class WP_Page_Condition_Stats {
 	 */
 	function enqueue() {
         wp_enqueue_style( 'wpfixit_con-style', plugins_url('style.css', __FILE__) );
-		wp_enqueue_script( 'wpfixit_con-script', plugins_url('Chart.min.js', __FILE__) );
+		wp_enqueue_script( 'wpfixit_con-script', plugins_url('Chart.min.js', __FILE__));
 	}
 
 
@@ -117,7 +118,10 @@ class WP_Page_Condition_Stats {
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
-						<td><input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : '')?>" class="regular-text"></td>
+						<td>
+							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : '')?>" class="regular-text" />
+							<p>https://developers.google.com/speed/docs/insights/v5/get-started</p>
+						</td>
 					</tr>
 				</table>
 				<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
@@ -138,17 +142,35 @@ class WP_Page_Condition_Stats {
 		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
 		if(!isset($wp_conditions_settings['wpcond_googleapis_key']) || trim($wp_conditions_settings['wpcond_googleapis_key']) == '')
 		return;
+		$date_y = date("Y");
+		$date_m = date("m");
+		$date_day = date("d");
 		$key = $wp_conditions_settings['wpcond_googleapis_key'];
-		$siteurl = get_bloginfo('url');  // 'https://github.com' get_bloginfo('url')
-		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key";
-		
-		$curl = curl_init($url);
-		curl_setopt($curl, CURLOPT_URL, $url);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-		$result = curl_exec($curl);
-		$result = json_decode($result,true);
+		$siteurl = 'https://github.com/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
+		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
+
+
+		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
+		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
+
+		$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+
+		if(isset($result['id']))
+		;
+		else{ 
+			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
+			$curl = curl_init($url);
+			curl_setopt($curl, CURLOPT_URL, $url);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+			$result = curl_exec($curl);
+			//echo $result;
+			$result = json_decode($result,true);
+			
+			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,$result);
+			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
+		}
 
 		//echo '<pre>';print_r($result);echo '</pre>';
 
@@ -430,359 +452,522 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 
 		?>
 		<tr>
-			<td colspan="3"><h2>WebSite Performance</h2></td>
+			<td colspan="3">
+				<h2>Core Web Assessment</h2>
+				<table>
+					<tr>
+						<td>
+							<canvas id="chart_clss" width="200" height="200"></canvas>
+							<script>
+									
+								var clss = document.getElementById("chart_clss"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var clsstext = '<?php echo $clss_meval_str?>';
+
+								var clssdata = {
+								labels: ["CUMULATIVE LAYOUT SHIFT SCORE: ( "+clsstext+" )"],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $clss_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var clss_config = {
+									type: 'bar',
+									data: clssdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: clsstext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(clss, clss_config);
+
+							</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_ttfb" width="200" height="200"></canvas>
+											<script>
+									
+								var ttfb = document.getElementById("chart_ttfb");
+								var ttfbtext = '<?php echo $ttfb_meval_str?> s';
+
+								var ttfbdata = {
+								labels: ['EXPERIMENTAL TIME TO FIRST BYTE: ( '+ttfbtext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $ttfb_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var ttfb_config = {
+									type: 'bar',
+									data: ttfbdata,
+									options: {			
+										// title: {
+										// 		 display: true,
+										// 		 text: ttfbtext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+										}
+									}
+
+								};
+
+								new Chart(ttfb, ttfb_config);
+
+											</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_fcp" width="200" height="200"></canvas>
+											<script>
+									
+								var fcp = document.getElementById("chart_fcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var fcptext = '<?php echo $fcp_meval_str?> s';
+
+								var fcpdata = {
+								labels: ['FIRST CONTENTFUL PAINT: ( '+fcptext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $fcp_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var fcp_config = {
+									type: 'bar',
+									data: fcpdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: fcptext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(fcp, fcp_config);
+
+											</script>				
+										</td>
+									</tr>
+
+
+							<!--
+
+							SECOND ROW OF WEBSITE PERFORMANCE
+
+							-->
+								
+									<tr>
+										<td>
+										<canvas id="chart_fid" width="200" height="200"></canvas>
+							<script>
+									
+								var fid = document.getElementById("chart_fid"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var fidtext = '<?php echo $fid_meval_str?> ms';
+
+								var fiddata = {
+								labels: ['FIRST INPUT DELAY: ( '+fidtext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $fid_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var fid_config = {
+									type: 'bar',
+									data: fiddata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: fidtext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(fid, fid_config);
+
+							</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_itnp" width="200" height="200"></canvas>
+											<script>
+									
+								var itnp = document.getElementById("chart_itnp"); 
+								var itnptext = '<?php echo $itnp_meval_str?> ms';
+
+
+								var itnpdata = {
+								labels: ['INTERACTION TO NEXT PAINT: ( '+itnptext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $itnp_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var itnp_config = {
+									type: 'bar',
+									data: itnpdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: itnptext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+
+								};
+
+								new Chart(itnp, itnp_config);
+
+											</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_lcp" width="200" height="200"></canvas>
+											<script>
+									
+								var lcp = document.getElementById("chart_lcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var lcptext = '<?php echo $lcp_meval_str?> s';
+
+								var lcpdata = {
+								labels: ['LARGEST CONTENTFUL PAINT: ( '+lcptext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $lcp_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var lcp_config = {
+									type: 'bar',
+									data: lcpdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: lcptext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(lcp, lcp_config);
+
+											</script>				
+										</td>
+									</tr>
+
+				</table>
+
+			</td>
 		</tr>
 
-        <tr>
-			<td>
-			<canvas id="chart_clss" width="200" height="200"></canvas>
-<script>
+
+
+
+
 		
-	var clss = document.getElementById("chart_clss"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
-	var clsstext = '<?php echo $clss_meval_str?>';
 
-	var clssdata = {
-	labels: ["CUMULATIVE LAYOUT SHIFT SCORE: ( "+clsstext+" )"],
-	datasets: [{
-		label: 'Fast',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][0]['max'])?>'],
-		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
-	}, {
-		label: 'Average',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][1]['max'])?>'],
-		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
-	}, {
-		label: 'Slow',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][2]['min'])?>'],
-		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
-	},
-	{
-		label: 'Exists',
-		data: ['<?php echo $clss_meval ?>'],
-		backgroundColor: 'rgba(100,100,100,0.7)', // gray
-	}
-	]
-	};
+<!--
 
-	var clss_config = {
-		type: 'bar',
-		data: clssdata,
-		options: {
-			// title: {
-     		// 		 display: true,
-      		// 		 text: clsstext
-    		// },
-			scales: {
-				yAxes: [{
-            			ticks: {
-                				beginAtZero: true
-            					}
-        				}]
+SECTION START PERFORMANCE METRICS
 
+ -->
+   
+ 		<tr>
+			<td colspan="3">
+				<h2>Diagnose Performance</h2>
+				<p><?php echo $result['lighthouseResult']['i18n']['rendererFormattedStrings']['varianceDisclaimer']?></p>
+				<table>
+					<tr>
+						<td>
+							First Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['first-contentful-paint']['displayValue'])?>
+						</td>
+						<td>
+							Largest Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['largest-contentful-paint']['displayValue'])?>
+						</td>
+						<td>
+							Total Blocking Time: <?php echo ($result['lighthouseResult']['audits']['total-blocking-time']['displayValue'])?>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Cumulative Layout Shift: <?php echo ($result['lighthouseResult']['audits']['cumulative-layout-shift']['displayValue'])?>
+						</td>
+						<td>
+							Speed Index: <?php echo ($result['lighthouseResult']['audits']['speed-index']['displayValue'])?>
+						</td>
+						<td>
+						<canvas id="chart_performance" width="300px" height="200px"></canvas>
+							<script>
+					
+								var perf = document.getElementById("chart_performance"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var perftext = '<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%';
+
+								
+								var chart = new Chart(perf, {
+								type: 'doughnut',
+								data: {
+								labels: ["Performance","Less"],
+								datasets: [{
+									label: 'Performance',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['performance']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['performance']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var textX = Math.round((width - ctx.measureText(perftext).width) / 2),
+										textY = height / 1.7;
+								
+									ctx.fillText(perftext,textX,textY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>				
+											<?php // print_r($result['lighthouseResult']['categories'])?>
+										</td>
+									</tr>
+
+				</table>
+	<h3>OPPORTUNITIES</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) && $audits_arr['details']["type"] == 'opportunity' && trim($audits_arr['score']) != '' && $audits_arr['score'] <= 0.9){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score']  ?></strong></p>
+						<p><?php echo $audits_arr['description'] ?></p>
+					</div>
+				</div>
+<?php
 			}
 		}
-	};
-
-	new Chart(clss, clss_config);
-
-</script>				
-			</td>
+	?>
 
 
-
-
-			<td>
-			<canvas id="chart_ttfb" width="200" height="200"></canvas>
-                <script>
+	<h3>DIAGNOSTICS</h3>
+	<?php 
 		
-	var ttfb = document.getElementById("chart_ttfb");
-	var ttfbtext = '<?php echo $ttfb_meval_str?> s';
-
-	var ttfbdata = {
-	labels: ['EXPERIMENTAL TIME TO FIRST BYTE: ( '+ttfbtext+' )'],
-	datasets: [{
-		label: 'Fast',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][0]['max'])?>'],
-		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
-	}, {
-		label: 'Average',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][1]['max'])?>'],
-		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
-	}, {
-		label: 'Slow',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][2]['min'])?>'],
-		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
-	},
-	{
-		label: 'Exists',
-		data: ['<?php echo $ttfb_meval ?>'],
-		backgroundColor: 'rgba(100,100,100,0.7)', // gray
-	}
-	]
-	};
-
-	var ttfb_config = {
-		type: 'bar',
-		data: ttfbdata,
-		options: {			
-			// title: {
-     		// 		 display: true,
-      		// 		 text: ttfbtext
-    		// },
-			scales: {
-				yAxes: [{
-            			ticks: {
-                				beginAtZero: true
-            					}
-        				}]
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) && ($audits_arr['details']["type"] == 'table' || $audits_arr['details']["type"] == 'criticalrequestchain') && trim($audits_arr['score']) != 1){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
+						<p><?php echo $audits_arr['description'] ?></p>
+					</div>
+				</div>
+<?php
 			}
 		}
-
-	};
-
-	new Chart(ttfb, ttfb_config);
-
-                </script>				
-			</td>
+	?>
 
 
 
-
-			<td>
-			<canvas id="chart_fcp" width="200" height="200"></canvas>
-                <script>
+	<h3>PASSED AUDITS</h3>
+	<?php 
 		
-	var fcp = document.getElementById("chart_fcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
-	var fcptext = '<?php echo $fcp_meval_str?> s';
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) &&  trim($audits_arr['score']) != '' && $audits_arr['score'] > 0.9){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
+						<p><?php echo $audits_arr['description'] ?></p>
 
-	var fcpdata = {
-	labels: ['FIRST CONTENTFUL PAINT: ( '+fcptext+' )'],
-	datasets: [{
-		label: 'Fast',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
-		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
-	}, {
-		label: 'Average',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
-		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
-	}, {
-		label: 'Slow',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
-		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
-	},
-	{
-		label: 'Exists',
-		data: ['<?php echo $fcp_meval ?>'],
-		backgroundColor: 'rgba(100,100,100,0.7)', // gray
-	}
-	]
-	};
-
-	var fcp_config = {
-		type: 'bar',
-		data: fcpdata,
-		options: {
-			// title: {
-     		// 		 display: true,
-      		// 		 text: fcptext
-    		// },
-			scales: {
-				yAxes: [{
-            			ticks: {
-                				beginAtZero: true
-            					}
-        				}]
-
+					</div>
+				</div>
+<?php
 			}
 		}
-	};
-
-	new Chart(fcp, fcp_config);
-
-                </script>				
+	?>
+		
 			</td>
 		</tr>
 
-
-
-
-
-
-
-
-
-     
-        <tr>
-			<td>
-			<canvas id="chart_fid" width="200" height="200"></canvas>
-<script>
-		
-	var fid = document.getElementById("chart_fid"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
-	var fidtext = '<?php echo $fid_meval_str?> ms';
-
-	var fiddata = {
-	labels: ['FIRST INPUT DELAY: ( '+fidtext+' )'],
-	datasets: [{
-		label: 'Fast',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][0]['max'])?>'],
-		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
-	}, {
-		label: 'Average',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][1]['max'])?>'],
-		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
-	}, {
-		label: 'Slow',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][2]['min'])?>'],
-		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
-	},
-	{
-		label: 'Exists',
-		data: ['<?php echo $fid_meval ?>'],
-		backgroundColor: 'rgba(100,100,100,0.7)', // gray
-	}
-	]
-	};
-
-	var fid_config = {
-		type: 'bar',
-		data: fiddata,
-		options: {
-			// title: {
-     		// 		 display: true,
-      		// 		 text: fidtext
-    		// },
-			scales: {
-				yAxes: [{
-            			ticks: {
-                				beginAtZero: true
-            					}
-        				}]
-
-			}
-		}
-	};
-
-	new Chart(fid, fid_config);
-
-</script>				
-			</td>
-
-
-
-
-			<td>
-			<canvas id="chart_itnp" width="200" height="200"></canvas>
-                <script>
-		
-	var itnp = document.getElementById("chart_itnp"); 
-	var itnptext = '<?php echo $itnp_meval_str?> ms';
-
-
-	var itnpdata = {
-	labels: ['INTERACTION TO NEXT PAINT: ( '+itnptext+' )'],
-	datasets: [{
-		label: 'Fast',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][0]['max'])?>'],
-		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
-	}, {
-		label: 'Average',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][1]['max'])?>'],
-		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
-	}, {
-		label: 'Slow',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][2]['min'])?>'],
-		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
-	},
-	{
-		label: 'Exists',
-		data: ['<?php echo $itnp_meval ?>'],
-		backgroundColor: 'rgba(100,100,100,0.7)', // gray
-	}
-	]
-	};
-
-	var itnp_config = {
-		type: 'bar',
-		data: itnpdata,
-		options: {
-			// title: {
-     		// 		 display: true,
-      		// 		 text: itnptext
-    		// },
-			scales: {
-				yAxes: [{
-            			ticks: {
-                				beginAtZero: true
-            					}
-        				}]
-
-			}
-		}
-
-	};
-
-	new Chart(itnp, itnp_config);
-
-                </script>				
-			</td>
-
-
-
-
-			<td>
-			<canvas id="chart_lcp" width="200" height="200"></canvas>
-                <script>
-		
-	var lcp = document.getElementById("chart_lcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
-	var lcptext = '<?php echo $lcp_meval_str?> s';
-
-	var lcpdata = {
-	labels: ['LARGEST CONTENTFUL PAINT: ( '+lcptext+' )'],
-	datasets: [{
-		label: 'Fast',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
-		backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
-	}, {
-		label: 'Average',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
-		backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
-	}, {
-		label: 'Slow',
-		data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
-		backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
-	},
-	{
-		label: 'Exists',
-		data: ['<?php echo $lcp_meval ?>'],
-		backgroundColor: 'rgba(100,100,100,0.7)', // gray
-	}
-	]
-	};
-
-	var lcp_config = {
-		type: 'bar',
-		data: lcpdata,
-		options: {
-			// title: {
-     		// 		 display: true,
-      		// 		 text: lcptext
-    		// },
-			scales: {
-				yAxes: [{
-            			ticks: {
-                				beginAtZero: true
-            					}
-        				}]
-
-			}
-		}
-	};
-
-	new Chart(lcp, lcp_config);
-
-                </script>				
-			</td>
-		</tr>   
 
 
 	<?php } // if(isset($result['id'])){ ?>
