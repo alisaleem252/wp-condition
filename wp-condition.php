@@ -839,12 +839,14 @@ SECTION START PERFORMANCE METRICS
 					</tr>
 					<tr>
 						<td>
+							
 							Cumulative Layout Shift: <?php echo ($result['lighthouseResult']['audits']['cumulative-layout-shift']['displayValue'])?>
 						</td>
 						<td>
 							Speed Index: <?php echo ($result['lighthouseResult']['audits']['speed-index']['displayValue'])?>
 						</td>
 						<td>
+							
 						<canvas id="chart_performance" width="300px" height="200px"></canvas>
 							<script>
 					
@@ -852,7 +854,7 @@ SECTION START PERFORMANCE METRICS
 								var perftext = '<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%';
 
 								
-								var chart = new Chart(perf, {
+								new Chart(perf, {
 								type: 'doughnut',
 								data: {
 								labels: ["Performance","Less"],
@@ -895,10 +897,9 @@ SECTION START PERFORMANCE METRICS
 							
 									
 									
-											</script>				
-											<?php // print_r($result['lighthouseResult']['categories'])?>
-										</td>
-									</tr>
+											</script>			
+						</td>
+					</tr>
 
 				</table>
 	<h3>OPPORTUNITIES</h3>
@@ -913,7 +914,7 @@ SECTION START PERFORMANCE METRICS
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score']  ?></strong></p>
-						<p><?php echo $audits_arr['description'] ?></p>
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
 					</div>
 				</div>
 <?php
@@ -934,7 +935,7 @@ SECTION START PERFORMANCE METRICS
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
-						<p><?php echo $audits_arr['description'] ?></p>
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
 					</div>
 				</div>
 <?php
@@ -956,7 +957,7 @@ SECTION START PERFORMANCE METRICS
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
-						<p><?php echo $audits_arr['description'] ?></p>
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
 
 					</div>
 				</div>
@@ -967,6 +968,268 @@ SECTION START PERFORMANCE METRICS
 		
 			</td>
 		</tr>
+
+
+
+
+
+<!-- 
+	Accessibility Section
+-->
+
+
+<tr>
+			<td colspan="3">
+				<h2>Accessibility Section</h2>
+				<table>
+					
+					<tr>
+						<td>
+							
+						<canvas id="chart_accessibility" width="300px" height="200px"></canvas>
+							<script>
+					
+								var accesss = document.getElementById("chart_accessibility"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var accessstext = '<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%';
+
+								
+								new Chart(accesss, {
+								type: 'doughnut',
+								data: {
+								labels: ["Accessibility","Less"],
+								datasets: [{
+									label: 'Accessibility',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['accessibility']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['accessibility']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var atextX = Math.round((width - ctx.measureText(accessstext).width) / 2),
+										atextY = height / 1.7;
+								
+									ctx.fillText(accessstext,atextX,atextY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+						</td>
+					</tr>
+
+				</table>
+				<p><?php echo ($result['lighthouseResult']['categories']['accessibility']['description'])?></p>
+				
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) && $audits_arr['details']["type"] == 'table' &&  isset($audits_arr['score']) && $audits_arr['score'] == 0){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+				<h3>ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'manual'){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+
+
+		<h3>NOT APPLICABLE</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'notApplicable'){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+			</td>
+		</tr>
+
+
+
+
+
+
+
+
+		
+		
+<!-- 
+	Best Practices Section
+-->
+
+
+		<tr>
+			<td colspan="3">
+				<h2>Best Practices Section</h2>
+				<table>
+					
+					<tr>
+						<td>
+							
+						<canvas id="chart_bestPractices" width="300px" height="200px"></canvas>
+							<script>
+					
+								var bestp = document.getElementById("chart_bestPractices"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var bestptext = '<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%';
+
+								
+								new Chart(bestp, {
+								type: 'doughnut',
+								data: {
+								labels: ["Best Practices","Less"],
+								datasets: [{
+									label: 'Best Practices',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['best-practices']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['best-practices']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var atextX = Math.round((width - ctx.measureText(bestptext).width) / 2),
+										atextY = height / 1.7;
+								
+									ctx.fillText(bestptext,atextX,atextY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+						</td>
+					</tr>
+
+				</table>
+
+
+				<h3>Trust And Safety</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-trust-safety' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+
+
+		<h3>USER EXPERIENCE</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-ux' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+	
+			</td>
+		</tr>
+
 
 
 
