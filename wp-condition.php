@@ -165,7 +165,7 @@ class WP_Page_Condition_Stats {
 			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 			$result = curl_exec($curl);
-			//echo $result;
+			
 			$result = json_decode($result,true);
 			
 			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,$result);
@@ -173,12 +173,7 @@ class WP_Page_Condition_Stats {
 		}
 
 		//echo '<pre>';print_r($result);echo '</pre>';
-
-		// // update_option('mam_test_res_googleapis',$result);
-	
-		// // 	//$result = $http->get( $url, $args );
-		//  	echo '<pre>';print_r(json_decode($result,true));echo '</pre>';
-		//var_dump(wp_remote_get("https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=http://localhost/wp4/wp4-for-wp-bakery-post-1/&key=AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic"));
+		
 		// Get values we're displaying
 		include( plugin_dir_path( __FILE__ ) . 'lib/social.php');         
 		$obj=new WP_Condition_shareCount(site_url()); 
@@ -574,7 +569,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 										<canvas id="chart_fcp" width="200" height="200"></canvas>
 											<script>
 									
-								var fcp = document.getElementById("chart_fcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var fcp = document.getElementById("chart_fcp"); 
 								var fcptext = '<?php echo $fcp_meval_str?> s';
 
 								var fcpdata = {
@@ -637,7 +632,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 										<canvas id="chart_fid" width="200" height="200"></canvas>
 							<script>
 									
-								var fid = document.getElementById("chart_fid"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var fid = document.getElementById("chart_fid"); 
 								var fidtext = '<?php echo $fid_meval_str?> ms';
 
 								var fiddata = {
@@ -753,7 +748,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 										<canvas id="chart_lcp" width="200" height="200"></canvas>
 											<script>
 									
-								var lcp = document.getElementById("chart_lcp"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var lcp = document.getElementById("chart_lcp"); 
 								var lcptext = '<?php echo $lcp_meval_str?> s';
 
 								var lcpdata = {
@@ -850,7 +845,7 @@ SECTION START PERFORMANCE METRICS
 						<canvas id="chart_performance" width="300px" height="200px"></canvas>
 							<script>
 					
-								var perf = document.getElementById("chart_performance"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var perf = document.getElementById("chart_performance"); 
 								var perftext = '<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%';
 
 								
@@ -989,7 +984,7 @@ SECTION START PERFORMANCE METRICS
 						<canvas id="chart_accessibility" width="300px" height="200px"></canvas>
 							<script>
 					
-								var accesss = document.getElementById("chart_accessibility"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var accesss = document.getElementById("chart_accessibility"); 
 								var accessstext = '<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%';
 
 								
@@ -1131,7 +1126,7 @@ SECTION START PERFORMANCE METRICS
 						<canvas id="chart_bestPractices" width="300px" height="200px"></canvas>
 							<script>
 					
-								var bestp = document.getElementById("chart_bestPractices"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var bestp = document.getElementById("chart_bestPractices"); 
 								var bestptext = '<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%';
 
 								
@@ -1185,11 +1180,14 @@ SECTION START PERFORMANCE METRICS
 				</table>
 
 
-				<h3>Trust And Safety</h3>
+
+
+
+		<h3>USER EXPERIENCE</h3>
 <?php 
 		
 		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
-			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-trust-safety' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1){?>
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-ux' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
 				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
 					<div class="postbox-header">
 						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
@@ -1208,11 +1206,38 @@ SECTION START PERFORMANCE METRICS
 
 
 
-		<h3>USER EXPERIENCE</h3>
+
+			<h3>Trust And Safety</h3>
 <?php 
 		
 		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
-			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-ux' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1){?>
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-trust-safety' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+
+
+
+
+
+<h3>GENERAL</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-general' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
 				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
 					<div class="postbox-header">
 						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
@@ -1227,9 +1252,138 @@ SECTION START PERFORMANCE METRICS
 		}
 	?>
 	
+
+
+
+
+
+
+	<h3>PASSED AUDITS</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'binary' && isset($audits_arr['score']) && $audits_arr['score'] == 1){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+	
 			</td>
 		</tr>
 
+
+
+
+
+
+
+
+
+		
+		
+<!-- 
+	SEO Section
+-->
+
+
+<tr>
+			<td colspan="3">
+				<h2>SEO Section</h2>
+				<table>
+					
+					<tr>
+						<td>
+							
+						<canvas id="chart_seo_sec" width="300px" height="200px"></canvas>
+							<script>
+					
+								var seo_sec = document.getElementById("chart_seo_sec"); 
+								var seotext = '<?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%';
+
+								
+								new Chart(seo_sec, {
+								type: 'doughnut',
+								data: {
+								labels: ["SEO","Less"],
+								datasets: [{
+									label: 'SEO',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['seo']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['seo']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var atextX = Math.round((width - ctx.measureText(seotext).width) / 2),
+										atextY = height / 1.7;
+								
+									ctx.fillText(seotext,atextX,atextY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+						</td>
+					</tr>
+
+				</table>
+				<p><?php echo ($result['lighthouseResult']['categories']['seo']['description'])?></p>
+
+
+
+
+
+		<h3>Crawling and Indexing</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-crawl' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>	
+			</td>
+		</tr>
 
 
 
