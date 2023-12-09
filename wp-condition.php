@@ -3,7 +3,7 @@
 Plugin Name: WordPress Site Condition
 Plugin URI: https://gigsix.com
 Description: Display WP-Condition in Chart for Database Performance, Memory Performance, Site Performance, and Social Performance. Requires PHP 5.2.0+
-Version: 3.5.2
+Version: 4.0.0
 Author: alisaleem252
 Author URI: http://thesetemplates.info
 */
@@ -153,11 +153,17 @@ class WP_Page_Condition_Stats {
 		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
 		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
 
-		$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		$fetchdata_date = isset($_GET['fetchdata_date']) ? $_GET['fetchdata_date'] : '';
+		if(trim($fetchdata_date) != '' && $fetchdata_date != 'current' && $fetchdata_date != 'clear'){
+			//var_dump($fetchdata_date);
 
-		if(isset($result['id']))
-		;
-		else{ 
+			$fetchdata_date_exp = explode('_',$fetchdata_date);
+			$date_y = isset($fetchdata_date_exp[0]) ? $fetchdata_date_exp[0] : $date_y;
+			$date_m = isset($fetchdata_date_exp[1]) ? $fetchdata_date_exp[1] : $date_m;
+			$date_day = isset($fetchdata_date_exp[2]) ? $fetchdata_date_exp[2] : $date_day;
+			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		}
+		elseif($fetchdata_date == 'current'){
 			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
 			$curl = curl_init($url);
 			curl_setopt($curl, CURLOPT_URL, $url);
@@ -170,9 +176,17 @@ class WP_Page_Condition_Stats {
 			
 			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,$result);
 			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
-		}
 
-		//echo '<pre>';print_r($result);echo '</pre>';
+			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		}
+		elseif($fetchdata_date == 'clear'){
+			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,array());
+			update_option("pagespeedonline_dates_arr",array());
+		}
+		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
+		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
+
+
 		
 		// Get values we're displaying
 		include( plugin_dir_path( __FILE__ ) . 'lib/social.php');         
@@ -424,9 +438,27 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 
 <td></td>
 
-        
+		<tr>
+			<td colspan="3">
+				<h2>Records Dates</h2>
+				<p>
+				<?php if(is_array($pso_dates_arr) && count($pso_dates_arr) > 0){
+					foreach ($pso_dates_arr as $key => $value) {?>
+						<a class="button button-secondary" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date='.$value) ?>">Fetch this date: <?php echo $value?></a> | 
+						
+						<?php
+					}
+				} ?>
+				</p>
+				<p>
+					<a class="button button-primary" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=current') ?>">Fetch Current Date</a> | 
+					<a class="button" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=clear') ?>" style="background:#d83a3a;border-color:#d83a3a;color:white">CLEAR DATA</a>
+				</p>
+			</td>
+		</tr>
         </tr>
-	<?php if(isset($result['id'])){ 
+
+	<?php if(isset($result['id']) && isset($_GET['fetchdata_date'])){ 
 		$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
 		$clss_meval_str = strlen($clss_meval) <= 3 ? $clss_meval/100 : $clss_meval/1000;
 
@@ -446,9 +478,20 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 		$lcp_meval_str =  round($lcp_meval/1000,1);
 
 		?>
+	
+
+	
+
 		<tr>
 			<td colspan="3">
-				<h2>Core Web Assessment</h2>
+				<h2>Performance</h2>
+				<div id="wpcond_perf_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+					<h3>Core Web Assessment</h3>
 				<table>
 					<tr>
 						<td>
@@ -799,49 +842,16 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 										</td>
 									</tr>
 
-				</table>
-
-			</td>
-		</tr>
-
-
-
-
-
-		
-
 <!--
 
 SECTION START PERFORMANCE METRICS
 
  -->
    
- 		<tr>
+ <tr>
 			<td colspan="3">
-				<h2>Diagnose Performance</h2>
-				<p><?php echo $result['lighthouseResult']['i18n']['rendererFormattedStrings']['varianceDisclaimer']?></p>
-				<table>
-					<tr>
-						<td>
-							First Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['first-contentful-paint']['displayValue'])?>
-						</td>
-						<td>
-							Largest Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['largest-contentful-paint']['displayValue'])?>
-						</td>
-						<td>
-							Total Blocking Time: <?php echo ($result['lighthouseResult']['audits']['total-blocking-time']['displayValue'])?>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							
-							Cumulative Layout Shift: <?php echo ($result['lighthouseResult']['audits']['cumulative-layout-shift']['displayValue'])?>
-						</td>
-						<td>
-							Speed Index: <?php echo ($result['lighthouseResult']['audits']['speed-index']['displayValue'])?>
-						</td>
-						<td>
-							
+				<h3>Diagnose Performance</h3>
+				<p>	
 						<canvas id="chart_performance" width="300px" height="200px"></canvas>
 							<script>
 					
@@ -893,10 +903,16 @@ SECTION START PERFORMANCE METRICS
 									
 									
 											</script>			
-						</td>
-					</tr>
+				</p>
+				<p><?php echo $result['lighthouseResult']['i18n']['rendererFormattedStrings']['varianceDisclaimer']?></p>
+				<p>First Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['first-contentful-paint']['displayValue'])?></p>
+				<p>Largest Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['largest-contentful-paint']['displayValue'])?></p>
+				<p>Total Blocking Time: <?php echo ($result['lighthouseResult']['audits']['total-blocking-time']['displayValue'])?></p>
+				<p>Cumulative Layout Shift: <?php echo ($result['lighthouseResult']['audits']['cumulative-layout-shift']['displayValue'])?></p>
+				<p>Speed Index: <?php echo ($result['lighthouseResult']['audits']['speed-index']['displayValue'])?></p>
 
-				</table>
+				
+				
 	<h3>OPPORTUNITIES</h3>
 	<?php 
 		
@@ -964,7 +980,18 @@ SECTION START PERFORMANCE METRICS
 			</td>
 		</tr>
 
+				</table>
+				</div>
+			</div>
+			</td>
+		</tr>
 
+
+
+
+
+		
+	
 
 
 
@@ -976,6 +1003,12 @@ SECTION START PERFORMANCE METRICS
 <tr>
 			<td colspan="3">
 				<h2>Accessibility Section</h2>
+				<div id="wpcond_access_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
 				<table>
 					
 					<tr>
@@ -1098,6 +1131,8 @@ SECTION START PERFORMANCE METRICS
 			}
 		}
 	?>
+					</div>
+			</div>
 			</td>
 		</tr>
 
@@ -1118,6 +1153,12 @@ SECTION START PERFORMANCE METRICS
 		<tr>
 			<td colspan="3">
 				<h2>Best Practices Section</h2>
+				<div id="wpcond_best_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
 				<table>
 					
 					<tr>
@@ -1276,7 +1317,7 @@ SECTION START PERFORMANCE METRICS
 			}
 		}
 	?>
-	
+	</div></div>
 			</td>
 		</tr>
 
@@ -1298,6 +1339,12 @@ SECTION START PERFORMANCE METRICS
 <tr>
 			<td colspan="3">
 				<h2>SEO Section</h2>
+				<div id="wpcond_seo_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
 				<table>
 					
 					<tr>
@@ -1369,7 +1416,7 @@ SECTION START PERFORMANCE METRICS
 		
 		foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
 			if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-crawl' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
-				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+				<div id="seo_crawl_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
 					<div class="postbox-header">
 						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
 						<button type="button" class="handlediv">&vArr;</button>
@@ -1382,6 +1429,71 @@ SECTION START PERFORMANCE METRICS
 			}
 		}
 	?>	
+
+
+	<h3>ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+	<?php 
+			
+			foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
+				if($result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'manual'){?>
+					<div id="seo_manualchk_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+						<div class="postbox-header">
+							<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+							<button type="button" class="handlediv">&vArr;</button>
+						</div>
+						<div class="inside">
+							<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+						</div>
+					</div>
+	<?php
+				}
+			}
+		?>	
+
+
+
+
+	<h3>PASSED AUDITS</h3>
+		<?php 
+			
+			foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+				if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'binary' && isset($audits_arr['score']) && $audits_arr['score'] == 1){?>
+					<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+						<div class="postbox-header">
+							<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+							<button type="button" class="handlediv">&vArr;</button>
+						</div>
+						<div class="inside">
+							<p><?php esc_html_e($audits_arr['description']) ?></p>
+						</div>
+					</div>
+	<?php
+				}
+			}
+		?>
+	
+
+
+
+	<h3>NOT APPLICABLE</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-mobile' && $result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'notApplicable'){?>
+				<div id="seo_crawl_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>	
+	</div></div>
 			</td>
 		</tr>
 
