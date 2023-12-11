@@ -14,3 +14,8 @@
 	padding: 20px;
 	min-width: 300px;
 }
+
+
+#chart_performance,#chart_accessibility,#chart_bestPractices,#chart_seo_sec {
+   height: 200px !important;
+}

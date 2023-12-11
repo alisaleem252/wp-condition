@@ -3,7 +3,7 @@
 Plugin Name: WordPress Site Condition
 Plugin URI: https://gigsix.com
 Description: Display WP-Condition in Chart for Database Performance, Memory Performance, Site Performance, and Social Performance. Requires PHP 5.2.0+
-Version: 2.0.0
+Version: 4.0.0
 Author: alisaleem252
 Author URI: http://thesetemplates.info
 */
@@ -60,13 +60,15 @@ class WP_Page_Condition_Stats {
 		update_option( $this->average_option, $load_times );
 		if(count($load_times) > 70)
 		update_option( $this->average_option, array() );
-
-		
 		
 	}
+
+
+
 	function admin_menu() {
 //		$this->display();
 		add_menu_page( 'WPFIXIT', 'WP Condition', 'manage_options', 'wp-conditions', array( &$this, 'display' ), 'dashicons-chart-line', 99 );
+		add_submenu_page( 'wp-conditions','Settings WP Conditions', 'Settings WP Conditions', 'manage_options', 'wp-conditions-settings', array( &$this, 'wp_conditions_settingsdisplay'));
 	}
 	/**
 	 * wp_head function.
@@ -89,7 +91,8 @@ class WP_Page_Condition_Stats {
 	 */
 	function wp_footer() {
 	//	$this->display();
-
+		wp_enqueue_script('dashboard');
+		//wp_enqueue_script( 'jquery-ui-sortable');
 	}
 
 	/**
@@ -99,8 +102,35 @@ class WP_Page_Condition_Stats {
 	 */
 	function enqueue() {
         wp_enqueue_style( 'wpfixit_con-style', plugins_url('style.css', __FILE__) );
-		wp_enqueue_script( 'wpfixit_con-script', plugins_url('Chart.min.js', __FILE__) );
+		wp_enqueue_script( 'wpfixit_con-script', plugins_url('Chart.min.js', __FILE__));
 	}
+
+
+	function wp_conditions_settingsdisplay() {
+		if(isset($_POST['wp_conditions_settings']) && isset($_POST['wscwpc-Save_Settings']) && wp_verify_nonce( $_POST['wscwpc-Save_Settings'],'Save_Settings')) {
+			update_option('wsc_wp_conditions_settings',$_POST['wp_conditions_settings']);
+		}
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
+		?>
+		<h2>Settings (WP Conditions)</h2>
+		<div class="wrap">
+			<form method="post">
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
+						<td>
+							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : '')?>" class="regular-text" />
+							<p>https://developers.google.com/speed/docs/insights/v5/get-started</p>
+						</td>
+					</tr>
+				</table>
+				<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+				<?php  wp_nonce_field('Save_Settings', 'wscwpc-Save_Settings'); ?>
+			</form>
+		</div>
+
+<?php
+	} // func wp_conditions_settingsdisplay
 
 	/**
 	 * display function.
@@ -109,14 +139,63 @@ class WP_Page_Condition_Stats {
 	 */
 	function display() {
 		global $wpdb;
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
+		if(!isset($wp_conditions_settings['wpcond_googleapis_key']) || trim($wp_conditions_settings['wpcond_googleapis_key']) == '')
+		return;
+		$date_y = date("Y");
+		$date_m = date("m");
+		$date_day = date("d");
+		$key = $wp_conditions_settings['wpcond_googleapis_key'];
+		$siteurl = 'https://github.com/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
+		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
+
+
+		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
+		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
+
+		$fetchdata_date = isset($_GET['fetchdata_date']) ? $_GET['fetchdata_date'] : '';
+		if(trim($fetchdata_date) != '' && $fetchdata_date != 'current' && $fetchdata_date != 'clear'){
+			//var_dump($fetchdata_date);
+
+			$fetchdata_date_exp = explode('_',$fetchdata_date);
+			$date_y = isset($fetchdata_date_exp[0]) ? $fetchdata_date_exp[0] : $date_y;
+			$date_m = isset($fetchdata_date_exp[1]) ? $fetchdata_date_exp[1] : $date_m;
+			$date_day = isset($fetchdata_date_exp[2]) ? $fetchdata_date_exp[2] : $date_day;
+			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		}
+		elseif($fetchdata_date == 'current'){
+			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
+			$curl = curl_init($url);
+			curl_setopt($curl, CURLOPT_URL, $url);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+			$result = curl_exec($curl);
+			
+			$result = json_decode($result,true);
+			
+			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,$result);
+			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
+
+			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		}
+		elseif($fetchdata_date == 'clear'){
+			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,array());
+			update_option("pagespeedonline_dates_arr",array());
+		}
+		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
+		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
+
+
+		
 		// Get values we're displaying
 		include( plugin_dir_path( __FILE__ ) . 'lib/social.php');         
 		$obj=new WP_Condition_shareCount(site_url()); 
 		$timer_stop 		= timer_stop(0);
 		$query_count 		= get_num_queries();
-		$memory_usage 		= round( $this->convert_bytes_to_hr( memory_get_usage() ), 2 );
-		$memory_peak_usage 	= round( $this->convert_bytes_to_hr( memory_get_peak_usage() ), 2 );
-		$memory_limit 		= round( $this->convert_bytes_to_hr( $this->let_to_num( WP_MEMORY_LIMIT ) ), 2 );
+		$memory_usage 		= round( (int) $this->convert_bytes_to_hr( memory_get_usage() ), 2 );
+		$memory_peak_usage 	= round( (int) $this->convert_bytes_to_hr( memory_get_peak_usage() ), 2 );
+		$memory_limit 		= round( (int) $this->convert_bytes_to_hr( $this->let_to_num( WP_MEMORY_LIMIT ) ), 2 );
 		$load_times			= array_filter( (array) get_option( $this->average_option ) );
 
 		$load_times[]		= array('time' => $timer_stop,'url'=>$_SERVER['REQUEST_URI']);
@@ -193,7 +272,7 @@ class WP_Page_Condition_Stats {
 											 }] 
 											 } }
 					);
-				
+
 		/*
 		 [
 				{
@@ -359,9 +438,1068 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 
 <td></td>
 
-        
+		<tr>
+			<td colspan="3">
+				<h2>Records Dates</h2>
+				<p>
+				<?php if(is_array($pso_dates_arr) && count($pso_dates_arr) > 0){
+					foreach ($pso_dates_arr as $key => $value) {?>
+						<a class="button button-secondary" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date='.$value) ?>">Fetch this date: <?php echo $value?></a> | 
+						
+						<?php
+					}
+				} ?>
+				</p>
+				<p>
+					<a class="button button-primary" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=current') ?>">Fetch Current Date</a> | 
+					<a class="button" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=clear') ?>" style="background:#d83a3a;border-color:#d83a3a;color:white">CLEAR DATA</a>
+				</p>
+			</td>
+		</tr>
         </tr>
-        
+
+	<?php if(isset($result['id']) && isset($_GET['fetchdata_date'])){ 
+		$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
+		$clss_meval_str = strlen($clss_meval) <= 3 ? $clss_meval/100 : $clss_meval/1000;
+
+		$ttfb_meval = $result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['percentile'];
+		$ttfb_meval_str = round($ttfb_meval/1000,1);
+
+		$fcp_meval = $result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['percentile'];
+		$fcp_meval_str = round($fcp_meval/1000,1);
+
+		$fid_meval = $result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['percentile'];
+		$fid_meval_str = $fid_meval;
+
+		$itnp_meval = $result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['percentile'];
+		$itnp_meval_str = $itnp_meval;
+
+		$lcp_meval = $result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['percentile'];
+		$lcp_meval_str =  round($lcp_meval/1000,1);
+
+		?>
+	
+
+	
+
+		<tr>
+			<td colspan="3">
+				<h2>Performance</h2>
+				<div id="wpcond_perf_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+					<h3>Core Web Assessment</h3>
+				<table>
+					<tr>
+						<td>
+							<canvas id="chart_clss" width="200" height="200"></canvas>
+							<script>
+									
+								var clss = document.getElementById("chart_clss"); // CUMULATIVE_LAYOUT_SHIFT_SCORE
+								var clsstext = '<?php echo $clss_meval_str?>';
+
+								var clssdata = {
+								labels: ["CUMULATIVE LAYOUT SHIFT SCORE: ( "+clsstext+" )"],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $clss_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var clss_config = {
+									type: 'bar',
+									data: clssdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: clsstext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(clss, clss_config);
+
+							</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_ttfb" width="200" height="200"></canvas>
+											<script>
+									
+								var ttfb = document.getElementById("chart_ttfb");
+								var ttfbtext = '<?php echo $ttfb_meval_str?> s';
+
+								var ttfbdata = {
+								labels: ['EXPERIMENTAL TIME TO FIRST BYTE: ( '+ttfbtext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $ttfb_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var ttfb_config = {
+									type: 'bar',
+									data: ttfbdata,
+									options: {			
+										// title: {
+										// 		 display: true,
+										// 		 text: ttfbtext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+										}
+									}
+
+								};
+
+								new Chart(ttfb, ttfb_config);
+
+											</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_fcp" width="200" height="200"></canvas>
+											<script>
+									
+								var fcp = document.getElementById("chart_fcp"); 
+								var fcptext = '<?php echo $fcp_meval_str?> s';
+
+								var fcpdata = {
+								labels: ['FIRST CONTENTFUL PAINT: ( '+fcptext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $fcp_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var fcp_config = {
+									type: 'bar',
+									data: fcpdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: fcptext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(fcp, fcp_config);
+
+											</script>				
+										</td>
+									</tr>
+
+
+							<!--
+
+							SECOND ROW OF WEBSITE PERFORMANCE
+
+							-->
+								
+									<tr>
+										<td>
+										<canvas id="chart_fid" width="200" height="200"></canvas>
+							<script>
+									
+								var fid = document.getElementById("chart_fid"); 
+								var fidtext = '<?php echo $fid_meval_str?> ms';
+
+								var fiddata = {
+								labels: ['FIRST INPUT DELAY: ( '+fidtext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $fid_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var fid_config = {
+									type: 'bar',
+									data: fiddata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: fidtext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(fid, fid_config);
+
+							</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_itnp" width="200" height="200"></canvas>
+											<script>
+									
+								var itnp = document.getElementById("chart_itnp"); 
+								var itnptext = '<?php echo $itnp_meval_str?> ms';
+
+
+								var itnpdata = {
+								labels: ['INTERACTION TO NEXT PAINT: ( '+itnptext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $itnp_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var itnp_config = {
+									type: 'bar',
+									data: itnpdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: itnptext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+
+								};
+
+								new Chart(itnp, itnp_config);
+
+											</script>				
+										</td>
+
+
+
+
+										<td>
+										<canvas id="chart_lcp" width="200" height="200"></canvas>
+											<script>
+									
+								var lcp = document.getElementById("chart_lcp"); 
+								var lcptext = '<?php echo $lcp_meval_str?> s';
+
+								var lcpdata = {
+								labels: ['LARGEST CONTENTFUL PAINT: ( '+lcptext+' )'],
+								datasets: [{
+									label: 'Fast',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][0]['max'])?>'],
+									backgroundColor: 'rgba(11, 156, 49, 0.7)', // green
+								}, {
+									label: 'Average',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][1]['max'])?>'],
+									backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+								}, {
+									label: 'Slow',
+									data: ['<?php echo ($result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['distributions'][2]['min'])?>'],
+									backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
+								},
+								{
+									label: 'Exists',
+									data: ['<?php echo $lcp_meval ?>'],
+									backgroundColor: 'rgba(100,100,100,0.7)', // gray
+								}
+								]
+								};
+
+								var lcp_config = {
+									type: 'bar',
+									data: lcpdata,
+									options: {
+										// title: {
+										// 		 display: true,
+										// 		 text: lcptext
+										// },
+										scales: {
+											yAxes: [{
+													ticks: {
+															beginAtZero: true
+															}
+													}]
+
+										}
+									}
+								};
+
+								new Chart(lcp, lcp_config);
+
+											</script>				
+										</td>
+									</tr>
+
+<!--
+
+SECTION START PERFORMANCE METRICS
+
+ -->
+   
+ <tr>
+			<td colspan="3">
+				<h3>Diagnose Performance</h3>
+				<p>	
+						<canvas id="chart_performance" width="300px" height="200px"></canvas>
+							<script>
+					
+								var perf = document.getElementById("chart_performance"); 
+								var perftext = '<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%';
+
+								
+								new Chart(perf, {
+								type: 'doughnut',
+								data: {
+								labels: ["Performance","Less"],
+								datasets: [{
+									label: 'Performance',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['performance']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['performance']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var textX = Math.round((width - ctx.measureText(perftext).width) / 2),
+										textY = height / 1.7;
+								
+									ctx.fillText(perftext,textX,textY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+				</p>
+				<p><?php echo $result['lighthouseResult']['i18n']['rendererFormattedStrings']['varianceDisclaimer']?></p>
+				<p>First Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['first-contentful-paint']['displayValue'])?></p>
+				<p>Largest Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['largest-contentful-paint']['displayValue'])?></p>
+				<p>Total Blocking Time: <?php echo ($result['lighthouseResult']['audits']['total-blocking-time']['displayValue'])?></p>
+				<p>Cumulative Layout Shift: <?php echo ($result['lighthouseResult']['audits']['cumulative-layout-shift']['displayValue'])?></p>
+				<p>Speed Index: <?php echo ($result['lighthouseResult']['audits']['speed-index']['displayValue'])?></p>
+
+				
+				
+	<h3>OPPORTUNITIES</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) && $audits_arr['details']["type"] == 'opportunity' && trim($audits_arr['score']) != '' && $audits_arr['score'] <= 0.9){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score']  ?></strong></p>
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+	<h3>DIAGNOSTICS</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) && ($audits_arr['details']["type"] == 'table' || $audits_arr['details']["type"] == 'criticalrequestchain') && trim($audits_arr['score']) != 1){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+	<h3>PASSED AUDITS</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) &&  trim($audits_arr['score']) != '' && $audits_arr['score'] > 0.9){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+		
+			</td>
+		</tr>
+
+				</table>
+				</div>
+			</div>
+			</td>
+		</tr>
+
+
+
+
+
+		
+	
+
+
+
+<!-- 
+	Accessibility Section
+-->
+
+
+<tr>
+			<td colspan="3">
+				<h2>Accessibility Section</h2>
+				<div id="wpcond_access_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+				<table>
+					
+					<tr>
+						<td>
+							
+						<canvas id="chart_accessibility" width="300px" height="200px"></canvas>
+							<script>
+					
+								var accesss = document.getElementById("chart_accessibility"); 
+								var accessstext = '<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%';
+
+								
+								new Chart(accesss, {
+								type: 'doughnut',
+								data: {
+								labels: ["Accessibility","Less"],
+								datasets: [{
+									label: 'Accessibility',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['accessibility']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['accessibility']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var atextX = Math.round((width - ctx.measureText(accessstext).width) / 2),
+										atextY = height / 1.7;
+								
+									ctx.fillText(accessstext,atextX,atextY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+						</td>
+					</tr>
+
+				</table>
+				<p><?php echo ($result['lighthouseResult']['categories']['accessibility']['description'])?></p>
+				
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['details']["type"]) && $audits_arr['details']["type"] == 'table' &&  isset($audits_arr['score']) && $audits_arr['score'] == 0){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+				<h3>ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'manual'){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+
+
+		<h3>NOT APPLICABLE</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'notApplicable'){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+					</div>
+			</div>
+			</td>
+		</tr>
+
+
+
+
+
+
+
+
+		
+		
+<!-- 
+	Best Practices Section
+-->
+
+
+		<tr>
+			<td colspan="3">
+				<h2>Best Practices Section</h2>
+				<div id="wpcond_best_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+				<table>
+					
+					<tr>
+						<td>
+							
+						<canvas id="chart_bestPractices" width="300px" height="200px"></canvas>
+							<script>
+					
+								var bestp = document.getElementById("chart_bestPractices"); 
+								var bestptext = '<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%';
+
+								
+								new Chart(bestp, {
+								type: 'doughnut',
+								data: {
+								labels: ["Best Practices","Less"],
+								datasets: [{
+									label: 'Best Practices',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['best-practices']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['best-practices']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var atextX = Math.round((width - ctx.measureText(bestptext).width) / 2),
+										atextY = height / 1.7;
+								
+									ctx.fillText(bestptext,atextX,atextY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+						</td>
+					</tr>
+
+				</table>
+
+
+
+
+
+		<h3>USER EXPERIENCE</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-ux' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+
+
+
+			<h3>Trust And Safety</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-trust-safety' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+
+
+
+
+
+
+
+
+<h3>GENERAL</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['best-practices']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'best-practices-general' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
+				<div id="perf_opportun_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+	
+
+
+
+
+
+
+	<h3>PASSED AUDITS</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+			if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'binary' && isset($audits_arr['score']) && $audits_arr['score'] == 1){?>
+				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($audits_arr['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>
+	</div></div>
+			</td>
+		</tr>
+
+
+
+
+
+
+
+
+
+		
+		
+<!-- 
+	SEO Section
+-->
+
+
+<tr>
+			<td colspan="3">
+				<h2>SEO Section</h2>
+				<div id="wpcond_seo_block" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%</h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+				<table>
+					
+					<tr>
+						<td>
+							
+						<canvas id="chart_seo_sec" width="300px" height="200px"></canvas>
+							<script>
+					
+								var seo_sec = document.getElementById("chart_seo_sec"); 
+								var seotext = '<?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%';
+
+								
+								new Chart(seo_sec, {
+								type: 'doughnut',
+								data: {
+								labels: ["SEO","Less"],
+								datasets: [{
+									label: 'SEO',
+									backgroundColor: ["green"],
+									data: [<?php echo $result['lighthouseResult']['categories']['seo']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['seo']['score']*100 ?>]
+								}]
+								},
+								plugins: [{
+								beforeDraw: function(chart) {
+									var width = chart.chart.width,
+										height = chart.chart.height,
+										ctx = chart.chart.ctx;
+								
+									ctx.restore();
+									var fontSize = (height / 90).toFixed(2);
+										ctx.font = fontSize + "em sans-serif";
+										ctx.textBaseline = "middle";
+								
+									var atextX = Math.round((width - ctx.measureText(seotext).width) / 2),
+										atextY = height / 1.7;
+								
+									ctx.fillText(seotext,atextX,atextY);
+									ctx.save();
+								}
+							}],
+								options: {
+								legend: {
+									display: true,
+								},
+								responsive: true,
+								maintainAspectRatio: false,
+								cutoutPercentage: 50
+								}
+
+							}
+							);
+
+							
+									
+									
+											</script>			
+						</td>
+					</tr>
+
+				</table>
+				<p><?php echo ($result['lighthouseResult']['categories']['seo']['description'])?></p>
+
+
+
+
+
+		<h3>Crawling and Indexing</h3>
+<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-crawl' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
+				<div id="seo_crawl_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>	
+
+
+	<h3>ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+	<?php 
+			
+			foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
+				if($result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'manual'){?>
+					<div id="seo_manualchk_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+						<div class="postbox-header">
+							<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+							<button type="button" class="handlediv">&vArr;</button>
+						</div>
+						<div class="inside">
+							<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+						</div>
+					</div>
+	<?php
+				}
+			}
+		?>	
+
+
+
+
+	<h3>PASSED AUDITS</h3>
+		<?php 
+			
+			foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+				if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'binary' && isset($audits_arr['score']) && $audits_arr['score'] == 1){?>
+					<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
+						<div class="postbox-header">
+							<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></h4>
+							<button type="button" class="handlediv">&vArr;</button>
+						</div>
+						<div class="inside">
+							<p><?php esc_html_e($audits_arr['description']) ?></p>
+						</div>
+					</div>
+	<?php
+				}
+			}
+		?>
+	
+
+
+
+	<h3>NOT APPLICABLE</h3>
+	<?php 
+		
+		foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
+			if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-mobile' && $result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'notApplicable'){?>
+				<div id="seo_crawl_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
+					<div class="postbox-header">
+						<h4 class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></h4>
+						<button type="button" class="handlediv">&vArr;</button>
+					</div>
+					<div class="inside">
+						<p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+					</div>
+				</div>
+<?php
+			}
+		}
+	?>	
+	</div></div>
+			</td>
+		</tr>
+
+
+
+	<?php } // if(isset($result['id'])){ ?>
         </tbody>
         </table>
 
