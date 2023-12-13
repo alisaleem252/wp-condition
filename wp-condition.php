@@ -120,7 +120,7 @@ class WP_Page_Condition_Stats {
 						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
 						<td>
 							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : '')?>" class="regular-text" />
-							<p>https://developers.google.com/speed/docs/insights/v5/get-started</p>
+							<p>Default API Key is set to plugin author, to protect your data you should use your own, <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank"> Get Google API Key</a> </p>
 						</td>
 					</tr>
 				</table>
@@ -139,7 +139,7 @@ class WP_Page_Condition_Stats {
 	 */
 	function display() {
 		global $wpdb;
-		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings','AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic');
 		if(!isset($wp_conditions_settings['wpcond_googleapis_key']) || trim($wp_conditions_settings['wpcond_googleapis_key']) == '')
 		return;
 		$date_y = date("Y");
