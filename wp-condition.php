@@ -119,7 +119,7 @@ class WP_Page_Condition_Stats {
 					<tr>
 						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
 						<td>
-							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : '')?>" class="regular-text" />
+							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : 'AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic')?>" class="regular-text" />
 							<p>https://developers.google.com/speed/docs/insights/v5/get-started</p>
 						</td>
 					</tr>
@@ -165,12 +165,12 @@ class WP_Page_Condition_Stats {
 		}
 		elseif($fetchdata_date == 'current'){
 			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
-			$curl = curl_init($url);
-			curl_setopt($curl, CURLOPT_URL, $url);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-			$result = curl_exec($curl);
+			// $curl = curl_init($url);
+			// curl_setopt($curl, CURLOPT_URL, $url);
+			// curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			// curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+			// curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+			// $result = curl_exec($curl);
 			
 			$result = json_decode($result,true);
 			
@@ -178,6 +178,8 @@ class WP_Page_Condition_Stats {
 			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
 
 			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
+
 		}
 		elseif($fetchdata_date == 'clear'){
 			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,array());
@@ -395,7 +397,7 @@ class WP_Page_Condition_Stats {
 				<h2>Social Performance:</h2>
                 <p>Using Sharethis Buttons</p>
                 
-                <?php $social_counts = $obj->get_social_counts() ;?>
+                <?php $social_counts = 1;// $obj->get_social_counts() ;?>
                 <canvas id="socialperform" height="300" width="600"></canvas>
 
 
@@ -436,8 +438,8 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
                 
         </td>
 
-<td></td>
-
+<td>&nbsp;</td>
+</tr>
 		<tr>
 			<td colspan="3">
 				<h2>Records Dates</h2>
@@ -456,7 +458,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 				</p>
 			</td>
 		</tr>
-        </tr>
+        
 
 	<?php if(isset($result['id']) && isset($_GET['fetchdata_date'])){ 
 		$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
@@ -484,15 +486,19 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 
 		<tr>
 			<td colspan="3">
-				<h2>Performance</h2>
-				<div id="wpcond_perf_block" class="postbox closed">
-					<div class="postbox-header">
-						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%</h4>
-						<button type="button" class="handlediv">&vArr;</button>
-					</div>
-					<div class="inside">
-					<h3>Core Web Assessment</h3>
-				<table>
+			<div class="wrap wrap about__container" style="max-width:100%">
+				<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
+					<a href="javascript:void(0)" class="nav-tab" data-id="performance">Performance (<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%)</a>
+					<a href="javascript:void(0)" class="nav-tab" data-id="accessibility">Accessibility (<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%)</a>
+					<a href="javascript:void(0)" class="nav-tab" data-id="bestpractices">Best Practices (<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%)</a>
+					<a href="javascript:void(0)" class="nav-tab" data-id="seo">SEO (<?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%)</a>
+				</nav>
+				<div class="wpcond_api_data" id="performance">
+					
+						<h2 class="aligncenter">Performance</h2>
+						
+				<h3>Core Web Assessment</h3>
+				<table> 
 					<tr>
 						<td>
 							<canvas id="chart_clss" width="200" height="200"></canvas>
@@ -980,35 +986,20 @@ SECTION START PERFORMANCE METRICS
 			</td>
 		</tr>
 
-				</table>
-				</div>
-			</div>
-			</td>
-		</tr>
-
-
-
-
-
-		
+	</table>
+				
+</div>
 	
 
-
-
 <!-- 
-	Accessibility Section
+
+Accessibility Section
+
 -->
 
-
-<tr>
-			<td colspan="3">
-				<h2>Accessibility Section</h2>
-				<div id="wpcond_access_block" class="postbox closed">
-					<div class="postbox-header">
-						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%</h4>
-						<button type="button" class="handlediv">&vArr;</button>
-					</div>
-					<div class="inside">
+			<div class="wpcond_api_data" id="accessibility">
+					
+				<h2 class="aligncenter">Accessibility</h2>
 				<table>
 					
 					<tr>
@@ -1131,35 +1122,18 @@ SECTION START PERFORMANCE METRICS
 			}
 		}
 	?>
-					</div>
-			</div>
-			</td>
-		</tr>
-
-
-
-
-
-
-
-
-		
+							
+				</div>
+					
 		
 <!-- 
 	Best Practices Section
 -->
 
-
-		<tr>
-			<td colspan="3">
-				<h2>Best Practices Section</h2>
-				<div id="wpcond_best_block" class="postbox closed">
-					<div class="postbox-header">
-						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%</h4>
-						<button type="button" class="handlediv">&vArr;</button>
-					</div>
-					<div class="inside">
-				<table>
+				<div class="wpcond_api_data" id="bestpractices">
+					
+						<h2 class="aligncenter">Best Practices</h2>
+						<table>
 					
 					<tr>
 						<td>
@@ -1317,35 +1291,17 @@ SECTION START PERFORMANCE METRICS
 			}
 		}
 	?>
-	</div></div>
-			</td>
-		</tr>
-
-
-
-
-
-
-
-
-
-		
+				</div>
+						
 		
 <!-- 
 	SEO Section
 -->
 
-
-<tr>
-			<td colspan="3">
-				<h2>SEO Section</h2>
-				<div id="wpcond_seo_block" class="postbox closed">
-					<div class="postbox-header">
-						<h4 class="hndle ui-sortable-handle">&nbsp; <?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%</h4>
-						<button type="button" class="handlediv">&vArr;</button>
-					</div>
-					<div class="inside">
-				<table>
+				<div class="wpcond_api_data" id="seo">
+					
+						<h2 class="aligncenter">SEO</h2>
+						<table>
 					
 					<tr>
 						<td>
@@ -1493,9 +1449,20 @@ SECTION START PERFORMANCE METRICS
 			}
 		}
 	?>	
-	</div></div>
+				</div>
+			<div>
+				
+			
 			</td>
 		</tr>
+
+
+
+
+
+	
+
+
 
 
 
@@ -1504,7 +1471,26 @@ SECTION START PERFORMANCE METRICS
         </table>
 
 		</div>
-        </div>
+    </div>
+
+		<script>
+			jQuery(document).ready(function(){
+				jQuery('.wpcond_api_data').hide();
+				jQuery(document.body).on('click','.nav-tab',function(e){
+					jQuery('.wpcond_api_data').hide();
+
+					jQuery('.nav-tab').each( function() {
+						jQuery(this).removeClass('nav-tab-active');
+					});
+
+					jQuery(this).addClass('nav-tab-active');
+
+					var tabid = jQuery(this).data('id');
+
+					jQuery('#'+tabid).show();
+				});
+			}); // jQuery(document).ready(function()
+		</script>
 		<?php
 	}
 
