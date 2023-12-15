@@ -146,7 +146,7 @@ class WP_Page_Condition_Stats {
 		$date_m = date("m");
 		$date_day = date("d");
 		$key = $wp_conditions_settings['wpcond_googleapis_key'];
-		$siteurl = 'https://github.com/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
+		$siteurl = get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
 		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
 
 
