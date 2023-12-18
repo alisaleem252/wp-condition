@@ -140,15 +140,15 @@ class WP_Page_Condition_Stats {
 	function display() {
 		global $wpdb;
 		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
-		if(!isset($wp_conditions_settings['wpcond_googleapis_key']) || trim($wp_conditions_settings['wpcond_googleapis_key']) == '')
-		return;
+		
 		$date_y = date("Y");
 		$date_m = date("m");
 		$date_day = date("d");
-		$key = $wp_conditions_settings['wpcond_googleapis_key'];
-		$siteurl = get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
+		$key = isset($wp_conditions_settings['wpcond_googleapis_key']) && trim($wp_conditions_settings['wpcond_googleapis_key']) != '' ? $wp_conditions_settings['wpcond_googleapis_key'] : 'AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic';
+		$siteurl = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost' ? 'https://developers.google.com/' : get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
 		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
 
+		//echo '<pre>';print_r($_SERVER);echo '</pre>';
 
 		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
 		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
@@ -165,12 +165,12 @@ class WP_Page_Condition_Stats {
 		}
 		elseif($fetchdata_date == 'current'){
 			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
-			// $curl = curl_init($url);
-			// curl_setopt($curl, CURLOPT_URL, $url);
-			// curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			// curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-			// curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-			// $result = curl_exec($curl);
+			$curl = curl_init($url);
+			curl_setopt($curl, CURLOPT_URL, $url);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+			$result = curl_exec($curl);
 			
 			$result = json_decode($result,true);
 			
@@ -454,7 +454,9 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 				</p>
 				<p>
 					<a class="button button-primary" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=current') ?>">Fetch Current Date</a> | 
+			<?php if(is_array($pso_dates_arr) && count($pso_dates_arr) > 0){?>
 					<a class="button" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=clear') ?>" style="background:#d83a3a;border-color:#d83a3a;color:white">CLEAR DATA</a>
+			<?php } //if(is_array($pso_dates_arr) && count($pso_dates_arr) > 0){} ?>
 				</p>
 			</td>
 		</tr>
