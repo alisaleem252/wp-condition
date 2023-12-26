@@ -324,15 +324,17 @@ class WP_Page_Condition_Stats {
                 
         </td>
         <td>
-   			<h1>Improve Performance</h1> 
-            <p><a href="https://studio.envato.com/explore/wordpress-speed-optimization/47090-wordpress-speed-optimization-service" class="button-primary">Order Services</a></p>
-            <p><a class="reset button-primary" style="background: #d83a3a; border-color: #d83a3a;" href="<?php echo add_query_arg( 'reset_wpfixit_con_stats', 1 ); ?>">Reset Statistics</a></p>
-			<p>This table also displays 404 urls of not found resoures, It captures only the last 70 requests.</p>
-			<table>
-			</tr>
-			
-			<?php foreach ($load_times as $loadtime) echo '<tr style="display: inline-grid;"><td>'.$loadtime['url'] . '</td><td> <strong> '.$loadtime['time']. '</strong> Seconds</td></tr>'?>
-			</table>
+			<div style="overflow:scroll;height:450px;">
+				<h1>Improve Performance</h1> 
+				<p><a href="https://studio.envato.com/explore/wordpress-speed-optimization/47090-wordpress-speed-optimization-service" class="button-primary">Order Services</a></p>
+				<p><a class="reset button-primary" style="background: #d83a3a; border-color: #d83a3a;" href="<?php echo add_query_arg( 'reset_wpfixit_con_stats', 1 ); ?>">Reset Statistics</a></p>
+				<p>This table also displays 404 urls of not found resoures, It captures only the last 70 requests.</p>
+				<table>
+				
+				
+				<?php foreach ($load_times as $loadtime) echo '<tr style="display: inline-grid;"><td>'.$loadtime['url'] . '</td><td> <strong> '.$loadtime['time']. '</strong> Seconds</td></tr>'?>
+				</table>
+			</div>
         </td>
         </tr>
         
