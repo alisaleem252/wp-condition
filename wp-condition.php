@@ -119,8 +119,10 @@ class WP_Page_Condition_Stats {
 					<tr>
 						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
 						<td>
+
 							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : 'AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic')?>" class="regular-text" />
 							<p>https://developers.google.com/speed/docs/insights/v5/get-started</p>
+
 						</td>
 					</tr>
 				</table>
@@ -139,7 +141,8 @@ class WP_Page_Condition_Stats {
 	 */
 	function display() {
 		global $wpdb;
-		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
+
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings','AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic');
 		
 		$date_y = date("Y");
 		$date_m = date("m");
