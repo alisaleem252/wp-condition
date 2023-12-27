@@ -8,6 +8,10 @@ Author: alisaleem252
 Author URI: http://thesetemplates.info
 */
 
+	defined( 'ABSPATH' ) || exit;
+	define('wpcondi_ABSPATH', dirname(__FILE__) );
+	define('wpcondi__URL', plugin_dir_url( __FILE__ ) );
+
 class WP_Page_Condition_Stats {
 
 	private $average_option;
@@ -218,6 +222,61 @@ class WP_Page_Condition_Stats {
 		// Display the info
 		?>
         <h1>WordPress Condition by <small>alisaleem252</small></h1>
+
+
+		<div class="wrap about__container maintabs" style="max-width:100%">
+			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
+				<a href="javascript:void(0)" class="nav-tab maintab_child nav-tab-active" data-id="wpcond_Page_Speed">Page Speed</a>
+				<a href="javascript:void(0)" class="nav-tab maintab_child" data-id="wpcond_Server_Performance">Server Performance</a>
+			</nav>
+			<div class="wpcond_maintab_child" id="wpcond_Page_Speed">
+				<h2 class="aligncenter">Page Speed</h2><div class="aligncenter">&nbsp;</div>
+				<?php require_once(wpcondi_ABSPATH.'/partials/pagespeed/fetched_records.php'); 
+
+					if(isset($result['id']) && isset($_GET['fetchdata_date'])){
+						$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
+						$clss_meval_str = strlen($clss_meval) <= 3 ? $clss_meval/100 : $clss_meval/1000;
+
+						$ttfb_meval = $result['loadingExperience']['metrics']['EXPERIMENTAL_TIME_TO_FIRST_BYTE']['percentile'];
+						$ttfb_meval_str = round($ttfb_meval/1000,1);
+
+						$fcp_meval = $result['loadingExperience']['metrics']['FIRST_CONTENTFUL_PAINT_MS']['percentile'];
+						$fcp_meval_str = round($fcp_meval/1000,1);
+
+						$fid_meval = $result['loadingExperience']['metrics']['FIRST_INPUT_DELAY_MS']['percentile'];
+						$fid_meval_str = $fid_meval;
+
+						$itnp_meval = $result['loadingExperience']['metrics']['INTERACTION_TO_NEXT_PAINT']['percentile'];
+						$itnp_meval_str = $itnp_meval;
+
+						$lcp_meval = $result['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['percentile'];
+						$lcp_meval_str =  round($lcp_meval/1000,1);
+
+						?>
+
+						<div class="wrap pagespeed_wrap about__container" style="max-width:100%">
+							<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
+								<a href="javascript:void(0)" class="nav-tab tab_child nav-tab-active" data-id="ps_performance">Performance (<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_accessibility">Accessibility (<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_bestpractices">Best Practices (<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_seo">SEO (<?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%)</a>
+							</nav>
+							<?php
+
+								require_once(wpcondi_ABSPATH.'/partials/pagespeed/performance.php'); 
+							?>
+						</div><!-- pagespeed_wrap -->
+						<?php
+					} // if(isset($result['id']) && isset($_GET['fetchdata_date']))
+
+				?>
+
+			</div><!-- #wpcond_Page_Speed -->
+			<div class="wpcond_api_data" id="wpcond_Server_Performance" style="display:none">
+				<h2 class="aligncenter">Server Performance</h2><div class="aligncenter">&nbsp;</div>
+			</div><!-- #wpcond_Server_Performance -->
+		</div><!-- about__container maintabs -->
+
         <div id="wpfixit_container" style="width:100%">
 		<div id="wpfixit_conditions">
         <table>
@@ -460,7 +519,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 				<p>
 					<a class="button button-primary" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=current') ?>">Fetch Current Date</a> | 
 			<?php if(is_array($pso_dates_arr) && count($pso_dates_arr) > 0){?>
-					<a class="button" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=clear') ?>" style="background:#d83a3a;border-color:#d83a3a;color:white">CLEAR DATA</a>
+					<a class="button" href="<?php echo admin_url('admin.php?page=wp-conditions&fetchdata_date=clear') ?>" style="background:#d83a3a;border-color:#d83a3a;color:white">Clear Fetched Data</a>
 			<?php } //if(is_array($pso_dates_arr) && count($pso_dates_arr) > 0){} ?>
 				</p>
 			</td>
@@ -493,7 +552,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 
 		<tr>
 			<td colspan="3">
-			<div class="wrap wrap about__container" style="max-width:100%">
+			<div class="wrap pagespeed_wrap about__container" style="max-width:100%">
 				<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
 					<a href="javascript:void(0)" class="nav-tab" data-id="performance">Performance (<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%)</a>
 					<a href="javascript:void(0)" class="nav-tab" data-id="accessibility">Accessibility (<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%)</a>
@@ -505,7 +564,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 						<h2 class="aligncenter">Performance</h2>
 						
 				<h3>Core Web Assessment</h3>
-				<table> 
+				<!--table> 
 					<tr>
 						<td>
 							<canvas id="chart_clss" width="200" height="200"></canvas>
@@ -677,11 +736,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 									</tr>
 
 
-							<!--
-
-							SECOND ROW OF WEBSITE PERFORMANCE
-
-							-->
+							
 								
 									<tr>
 										<td>
@@ -855,12 +910,7 @@ new Chart(document.getElementById("socialperform") ,{	type: 'bar',
 										</td>
 									</tr>
 
-<!--
-
-SECTION START PERFORMANCE METRICS
-
- -->
-   
+									
  <tr>
 			<td colspan="3">
 				<h3>Diagnose Performance</h3>
@@ -993,7 +1043,7 @@ SECTION START PERFORMANCE METRICS
 			</td>
 		</tr>
 
-	</table>
+	</table-->
 				
 </div>
 	
@@ -1482,11 +1532,10 @@ Accessibility Section
 
 		<script>
 			jQuery(document).ready(function(){
-				jQuery('.wpcond_api_data').hide();
-				jQuery(document.body).on('click','.nav-tab',function(e){
-					jQuery('.wpcond_api_data').hide();
+				jQuery(document.body).on('click','.maintab_child',function(e){
+					jQuery('.wpcond_maintab_child').hide();
 
-					jQuery('.nav-tab').each( function() {
+					jQuery('.maintab_child').each( function() {
 						jQuery(this).removeClass('nav-tab-active');
 					});
 
