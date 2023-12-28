@@ -10,7 +10,8 @@ Author URI: http://thesetemplates.info
 
 	defined( 'ABSPATH' ) || exit;
 	define('wpcondi_ABSPATH', dirname(__FILE__) );
-	define('wpcondi__URL', plugin_dir_url( __FILE__ ) );
+	define('wpcondi_URL', plugin_dir_url( __FILE__ ) );
+	define('wpcondi_serviceURL', '#' );
 
 class WP_Page_Condition_Stats {
 
@@ -184,7 +185,7 @@ class WP_Page_Condition_Stats {
 			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
 
 			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
-			//echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
+			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
 
 		}
 
@@ -283,12 +284,20 @@ class WP_Page_Condition_Stats {
 			</div><!-- #wpcond_Page_Speed -->
 			<div class="wpcond_maintab_child" id="wpcond_Server_Performance" style="display:none">
 				<div class="aligncenter">&nbsp;</div><h2>Server Performance</h2><div class="aligncenter">&nbsp;</div>
-				<p><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/db_performance.php');?></p>
-				<p><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/site_performance.php');?></p>
-				<p><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/memory.php');?></p>
-				<p><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/peak_memory.php');?></p>
-				<p><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/social_performance.php');?></p>
-				<p><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/improv_performance.php');?></p>
+				<table class="wp-list-table widefat fixed striped">
+					<tr>
+						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/db_performance.php');?></th>
+						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/site_performance.php');?></th>
+					</tr>
+					<tr>
+						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/memory.php');?></th>
+						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/peak_memory.php');?></th>
+					</tr>
+					<tr>
+						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/social_performance.php');?></th>
+						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/improv_performance.php');?></th>
+					</tr>
+				</table>
 			</div><!-- #wpcond_Server_Performance -->
 		</div><!-- about__container maintabs -->
 

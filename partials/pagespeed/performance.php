@@ -1,6 +1,9 @@
     <div class="wpcond_tab_child" id="ps_performance">
         <h2 class="aligncenter">Performance</h2>
         <h3>Core Web Assessment</h3>
+        <table class="wp-list-table widefat fixed striped">
+			<tr>
+				<th valign="top">
         <canvas id="chart_clss"></canvas>
                 <script>
                         
@@ -51,6 +54,8 @@
 
                     new Chart(clss, clss_config);
                 </script>
+                </th>
+                <th valign="top">
                 <h2 class="aligncenter">&nbsp;</h2>
                 <canvas id="chart_ttfb" ></canvas>
                 <script>
@@ -103,6 +108,10 @@
                     new Chart(ttfb, ttfb_config);
 
                 </script>
+                </th>
+            </tr>
+            <tr>
+                <th valign="top">
                 <h2 class="aligncenter">&nbsp;</h2>
                 <canvas id="chart_fcp" ></canvas>
                     <script>
@@ -154,7 +163,8 @@
 
                         new Chart(fcp, fcp_config);
                 </script>
-
+                </th>
+                <th valign="top">
                 <h2 class="aligncenter">&nbsp;</h2>
                 <canvas id="chart_fid" ></canvas>
                 <script>
@@ -207,7 +217,10 @@
                     new Chart(fid, fid_config);
 
                 </script>
-
+                </th>
+            </tr>
+            <tr>
+                <th valign="top">
                 <h2 class="aligncenter">&nbsp;</h2>
                 <canvas id="chart_itnp" ></canvas>
                 <script>
@@ -261,7 +274,8 @@
 
                     new Chart(itnp, itnp_config);
                 </script>
-
+                </th>
+                <th valign="top">
                 <h2 class="aligncenter">&nbsp;</h2>
                 <canvas id="chart_lcp" ></canvas>
                 <script>
@@ -313,7 +327,9 @@
 
                     new Chart(lcp, lcp_config);
                 </script>
-
+                </th>
+            </tr>
+        </table>
                 <h3>Diagnose Performance</h3>
 				    <p>	
 						<canvas id="chart_performance"></canvas>
