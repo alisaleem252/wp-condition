@@ -146,32 +146,30 @@ class WP_Page_Condition_Stats {
 	function display() {
 		global $wpdb;
 
-		$wp_conditions_settings = get_option('wsc_wp_conditions_settings','AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic');
+		$wp_conditions_settings = get_option('wsc_wp_conditions_settings',array());
 		
 		$date_y = date("Y");
 		$date_m = date("m");
 		$date_day = date("d");
-		$key = isset($wp_conditions_settings['wpcond_googleapis_key']) && trim($wp_conditions_settings['wpcond_googleapis_key']) != '' ? $wp_conditions_settings['wpcond_googleapis_key'] : 'AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic';
+		$key = isset($wp_conditions_settings['wpcond_googleapis_key']) && trim($wp_conditions_settings['wpcond_googleapis_key']) != '' ? $wp_conditions_settings['wpcond_googleapis_key'] : '';
 		$siteurl = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost' ? 'https://developers.google.com/' : get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
 		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
 
-		//echo '<pre>';print_r($_SERVER);echo '</pre>';
 
-		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
+		$pso_dates_arr = get_option("pagespeedonline_dates_arr",array(date("Y_m_d")=>date("Y_m_d")));
 		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
 
 		$fetchdata_date = isset($_GET['fetchdata_date']) ? $_GET['fetchdata_date'] : date("Y_m_d");
 	
-		$fetchdata_date_exp = explode('_',$fetchdata_date);
-		$date_y = isset($fetchdata_date_exp[0]) ? $fetchdata_date_exp[0] : $date_y;
-		$date_m = isset($fetchdata_date_exp[1]) ? $fetchdata_date_exp[1] : $date_m;
-		$date_day = isset($fetchdata_date_exp[2]) ? $fetchdata_date_exp[2] : $date_day;
 		$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+
 		if($fetchdata_date == 'clear'){
 			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,array());
 			update_option("pagespeedonline_dates_arr",array());
+			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
 		}
-		elseif($fetchdata_date == 'current' || !isset($result['id'])){
+
+		if($fetchdata_date == 'current' || !isset($result['id'])){
 			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
 			$curl = curl_init($url);
 			curl_setopt($curl, CURLOPT_URL, $url);
@@ -186,12 +184,23 @@ class WP_Page_Condition_Stats {
 			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
 
 			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
-			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
+			//echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
 
 		}
+
+		if(isset($_GET['fetchdata_date']) && ($_GET['fetchdata_date'] != 'clear' || $_GET['fetchdata_date'] != 'current')){
+			$fetchdata_date_exp = explode('_',$fetchdata_date);
+			$date_y = isset($fetchdata_date_exp[0]) ? $fetchdata_date_exp[0] : $date_y;
+			$date_m = isset($fetchdata_date_exp[1]) ? $fetchdata_date_exp[1] : $date_m;
+			$date_day = isset($fetchdata_date_exp[2]) ? $fetchdata_date_exp[2] : $date_day;
+		}
 		
-		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
-		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
+		$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		
+		$pso_dates_arr = get_option("pagespeedonline_dates_arr",array(date("Y_m_d")=>date("Y_m_d")));
+		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array(date("Y_m_d")=>date("Y_m_d"));
+
+		//echo '<pre>';print_r($pso_dates_arr);echo '</pre>';
 
 		// Get values we're displaying
 		include( plugin_dir_path( __FILE__ ) . 'lib/social.php');         
