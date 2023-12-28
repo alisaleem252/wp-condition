@@ -160,17 +160,18 @@ class WP_Page_Condition_Stats {
 		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
 		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
 
-		$fetchdata_date = isset($_GET['fetchdata_date']) ? $_GET['fetchdata_date'] : '';
-		if(trim($fetchdata_date) != '' && $fetchdata_date != 'current' && $fetchdata_date != 'clear'){
-			//var_dump($fetchdata_date);
-
-			$fetchdata_date_exp = explode('_',$fetchdata_date);
-			$date_y = isset($fetchdata_date_exp[0]) ? $fetchdata_date_exp[0] : $date_y;
-			$date_m = isset($fetchdata_date_exp[1]) ? $fetchdata_date_exp[1] : $date_m;
-			$date_day = isset($fetchdata_date_exp[2]) ? $fetchdata_date_exp[2] : $date_day;
-			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		$fetchdata_date = isset($_GET['fetchdata_date']) ? $_GET['fetchdata_date'] : date("Y_m_d");
+	
+		$fetchdata_date_exp = explode('_',$fetchdata_date);
+		$date_y = isset($fetchdata_date_exp[0]) ? $fetchdata_date_exp[0] : $date_y;
+		$date_m = isset($fetchdata_date_exp[1]) ? $fetchdata_date_exp[1] : $date_m;
+		$date_day = isset($fetchdata_date_exp[2]) ? $fetchdata_date_exp[2] : $date_day;
+		$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+		if($fetchdata_date == 'clear'){
+			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,array());
+			update_option("pagespeedonline_dates_arr",array());
 		}
-		elseif($fetchdata_date == 'current'){
+		elseif($fetchdata_date == 'current' || !isset($result['id'])){
 			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
 			$curl = curl_init($url);
 			curl_setopt($curl, CURLOPT_URL, $url);
@@ -188,15 +189,10 @@ class WP_Page_Condition_Stats {
 			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
 
 		}
-		elseif($fetchdata_date == 'clear'){
-			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,array());
-			update_option("pagespeedonline_dates_arr",array());
-		}
+		
 		$pso_dates_arr = get_option("pagespeedonline_dates_arr");
 		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
 
-
-		
 		// Get values we're displaying
 		include( plugin_dir_path( __FILE__ ) . 'lib/social.php');         
 		$obj=new WP_Condition_shareCount(site_url()); 
@@ -233,7 +229,7 @@ class WP_Page_Condition_Stats {
 			<div class="aligncenter">&nbsp;</div><h2>Page Speed</h2><div class="aligncenter">&nbsp;</div>
 				<?php require_once(wpcondi_ABSPATH.'/partials/pagespeed/fetched_records.php'); 
 
-					if(isset($result['id']) && isset($_GET['fetchdata_date'])){
+					if(isset($result['id'])){
 						$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
 						$clss_meval_str = strlen($clss_meval) <= 3 ? $clss_meval/100 : $clss_meval/1000;
 
