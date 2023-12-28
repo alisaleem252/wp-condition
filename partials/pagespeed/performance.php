@@ -56,7 +56,7 @@
                 </script>
                 </th>
                 <th valign="top">
-                <h2 class="aligncenter">&nbsp;</h2>
+                
                 <canvas id="chart_ttfb" ></canvas>
                 <script>
                         
@@ -112,7 +112,7 @@
             </tr>
             <tr>
                 <th valign="top">
-                <h2 class="aligncenter">&nbsp;</h2>
+                
                 <canvas id="chart_fcp" ></canvas>
                     <script>
             
@@ -165,7 +165,7 @@
                 </script>
                 </th>
                 <th valign="top">
-                <h2 class="aligncenter">&nbsp;</h2>
+                
                 <canvas id="chart_fid" ></canvas>
                 <script>
                         
@@ -221,7 +221,7 @@
             </tr>
             <tr>
                 <th valign="top">
-                <h2 class="aligncenter">&nbsp;</h2>
+                
                 <canvas id="chart_itnp" ></canvas>
                 <script>
         
@@ -276,7 +276,7 @@
                 </script>
                 </th>
                 <th valign="top">
-                <h2 class="aligncenter">&nbsp;</h2>
+                
                 <canvas id="chart_lcp" ></canvas>
                 <script>
                         
