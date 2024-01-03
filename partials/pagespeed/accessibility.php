@@ -44,7 +44,7 @@
             });
 		</script>
 
-<p><?php echo ($result['lighthouseResult']['categories']['accessibility']['description'])?></p>
+<p><?php echo wpcondi_readmein8($result['lighthouseResult']['categories']['accessibility']['description'])?></p>
 				
                 <?php 
                     
@@ -56,7 +56,7 @@
                                     <button type="button" class="handlediv">&vArr;</button>
                                 </div>
                                 <div class="inside">
-                                    <p><?php esc_html_e($audits_arr['description']) ?></p>
+                                    <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
                                 </div>
                             </div>
             <?php
@@ -65,7 +65,7 @@
                 ?>
             
             
-            <h3>ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+            <h3 class="expand-all">ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
             <?php 
                     
                     foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
@@ -76,7 +76,7 @@
                                     <button type="button" class="handlediv">&vArr;</button>
                                 </div>
                                 <div class="inside">
-                                    <p><?php esc_html_e($audits_arr['description']) ?></p>
+                                    <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
                                 </div>
                             </div>
             <?php
@@ -84,7 +84,7 @@
                     }
                 ?>
             
-            <h3>NOT APPLICABLE</h3>
+            <h3 class="expand-all">NOT APPLICABLE</h3>
             <?php 
                     
                     foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
@@ -95,7 +95,9 @@
                                     <button type="button" class="handlediv">&vArr;</button>
                                 </div>
                                 <div class="inside">
-                                    <p><?php esc_html_e($audits_arr['description']) ?></p>
+                                    <p><?php
+                                    //var_dump($audits_arr['description']);
+                                    echo wpcondi_readmein8($audits_arr['description']) ?></p>
                                 </div>
                             </div>
             <?php

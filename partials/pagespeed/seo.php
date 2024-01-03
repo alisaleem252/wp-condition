@@ -50,7 +50,7 @@
 
         <p><?php echo ($result['lighthouseResult']['categories']['seo']['description'])?></p>
         <?php if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-crawl'):?>
-            <h3>Crawling and Indexing</h3>
+            <h3 class="expand-all">Crawling and Indexing</h3>
             <?php 
         endif; // seo-crawl
 
@@ -62,7 +62,7 @@
                             <button type="button" class="handlediv">&vArr;</button>
                         </div>
                         <div class="inside">
-                            <p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                            <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
                         </div>
                     </div>
             <?php
@@ -71,7 +71,7 @@
             ?>	
 
 
-            <h3>ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+            <h3 class="expand-all">ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
             <?php 
                 
                 foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
@@ -82,7 +82,7 @@
                                 <button type="button" class="handlediv">&vArr;</button>
                             </div>
                             <div class="inside">
-                                <p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                                <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
                             </div>
                         </div>
             <?php
@@ -93,7 +93,7 @@
 
 
 
-            <h3>PASSED AUDITS</h3>
+            <h3 class="expand-all">PASSED AUDITS</h3>
             <?php 
                 
                 foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
@@ -104,7 +104,7 @@
                                 <button type="button" class="handlediv">&vArr;</button>
                             </div>
                             <div class="inside">
-                                <p><?php esc_html_e($audits_arr['description']) ?></p>
+                                <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
                             </div>
                         </div>
             <?php
@@ -115,7 +115,7 @@
 
 
 
-            <h3>NOT APPLICABLE</h3>
+            <h3 class="expand-all">NOT APPLICABLE</h3>
             <?php 
 
             foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
@@ -126,7 +126,7 @@
                             <button type="button" class="handlediv">&vArr;</button>
                         </div>
                         <div class="inside">
-                            <p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                            <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
                         </div>
                     </div>
             <?php

@@ -1,4 +1,4 @@
-    <h3>Improve Performance</h3> 
+    <h3 class="expand-all">Improve Performance</h3> 
     <p>
         <a href="<?php echo wpcondi_serviceURL ;?>" class="button-primary">Order Services</a>
     </p>

@@ -1,4 +1,4 @@
-<h3>Site Performance:</h3>
+<h3 class="expand-all">Site Performance:</h3>
 <p><?php printf( __( 'Average Server load time of %s (%s runs).', 'wpfixit_con' ), $average_load_time, sizeof( $load_times ) ); ?></p>
 <p><canvas id="siperform"></canvas></p>
 

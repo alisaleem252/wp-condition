@@ -1,6 +1,6 @@
     <div class="wpcond_tab_child" id="ps_performance">
         <h2 class="aligncenter">Performance</h2>
-        <h3>Core Web Assessment</h3>
+        <h3 class="expand-all">Core Web Assessment</h3>
         <table class="wp-list-table widefat fixed striped">
 			<tr>
 				<th valign="top">
@@ -26,7 +26,7 @@
                         backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
                     },
                     {
-                        label: 'Exists',
+                        label: 'Current',
                         data: ['<?php echo $clss_meval ?>'],
                         backgroundColor: 'rgba(100,100,100,0.7)', // gray
                     }
@@ -79,7 +79,7 @@
                         backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
                     },
                     {
-                        label: 'Exists',
+                        label: 'Current',
                         data: ['<?php echo $ttfb_meval ?>'],
                         backgroundColor: 'rgba(100,100,100,0.7)', // gray
                     }
@@ -135,7 +135,7 @@
                             backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
                         },
                         {
-                            label: 'Exists',
+                            label: 'Current',
                             data: ['<?php echo $fcp_meval ?>'],
                             backgroundColor: 'rgba(100,100,100,0.7)', // gray
                         }
@@ -188,7 +188,7 @@
                         backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
                     },
                     {
-                        label: 'Exists',
+                        label: 'Current',
                         data: ['<?php echo $fid_meval ?>'],
                         backgroundColor: 'rgba(100,100,100,0.7)', // gray
                     }
@@ -245,7 +245,7 @@
                         backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
                     },
                     {
-                        label: 'Exists',
+                        label: 'Current',
                         data: ['<?php echo $itnp_meval ?>'],
                         backgroundColor: 'rgba(100,100,100,0.7)', // gray
                     }
@@ -299,7 +299,7 @@
                         backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red
                     },
                     {
-                        label: 'Exists',
+                        label: 'Current',
                         data: ['<?php echo $lcp_meval ?>'],
                         backgroundColor: 'rgba(100,100,100,0.7)', // gray
                     }
@@ -330,7 +330,7 @@
                 </th>
             </tr>
         </table>
-                <h3>Diagnose Performance</h3>
+                <h3 class="expand-all">Diagnose Performance</h3>
 				    <p>	
 						<canvas id="chart_performance"></canvas>
 							<script>
@@ -384,7 +384,7 @@
 									
 											</script>			
 				</p>
-				<p><?php echo $result['lighthouseResult']['i18n']['rendererFormattedStrings']['varianceDisclaimer']?></p>
+				<p><?php echo wpcondi_readmein8($result['lighthouseResult']['i18n']['rendererFormattedStrings']['varianceDisclaimer'])?></p>
 				<p>First Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['first-contentful-paint']['displayValue'])?></p>
 				<p>Largest Contentful Paint: <?php echo ($result['lighthouseResult']['audits']['largest-contentful-paint']['displayValue'])?></p>
 				<p>Total Blocking Time: <?php echo ($result['lighthouseResult']['audits']['total-blocking-time']['displayValue'])?></p>
@@ -393,7 +393,7 @@
 
 				
 				
-	<h3>OPPORTUNITIES</h3>
+	<h3 class="expand-all">OPPORTUNITIES</h3>
 	<?php 
 		
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
@@ -405,7 +405,7 @@
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score']  ?></strong></p>
-						<p><?php esc_html_e($audits_arr['description']) ?></p>
+						<p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
 					</div>
 				</div>
 <?php
@@ -414,7 +414,7 @@
 	?>
 
 
-	<h3>DIAGNOSTICS</h3>
+	<h3 class="expand-all">DIAGNOSTICS</h3>
 	<?php 
 		
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
@@ -426,7 +426,7 @@
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
-						<p><?php esc_html_e($audits_arr['description']) ?></p>
+						<p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
 					</div>
 				</div>
 <?php
@@ -436,7 +436,7 @@
 
 
 
-	<h3>PASSED AUDITS</h3>
+	<h3 class="expand-all">PASSED AUDITS</h3>
 	<?php 
 		
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
@@ -448,7 +448,7 @@
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
-						<p><?php esc_html_e($audits_arr['description']) ?></p>
+						<p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
 
 					</div>
 				</div>

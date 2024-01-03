@@ -1,4 +1,4 @@
-    <h3>Memory Usage:</h3>
+    <h3 class="expand-all">Memory Usage:</h3>
     <p><?php printf( __( '%s out of %s MB (%s) memory used.', 'wpfixit_con' ), $memory_usage, $memory_limit, round( ( $memory_usage / $memory_limit ), 2 ) * 100 . '%' ); ?></p>
     <p><canvas id="dbperform"></canvas></p>
     <script>

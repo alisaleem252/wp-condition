@@ -1,4 +1,4 @@
-    <h3>Social Performance:</h3>
+    <h3 class="expand-all">Social Performance:</h3>
     <p>Using Sharethis Buttons</p>
                 
     <?php $social_counts = $obj->get_social_counts(); //1 ?>

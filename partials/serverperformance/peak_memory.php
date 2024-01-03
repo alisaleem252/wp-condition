@@ -1,4 +1,4 @@
-<h3>Peak Memory Usage:</h3>
+<h3 class="expand-all">Peak Memory Usage:</h3>
 <p><?php printf( __( 'Peak memory usage %s MB.', 'wpfixit_con' ), $memory_peak_usage ); ?></p>
 <p><canvas id="peakmemory"></canvas></>
 

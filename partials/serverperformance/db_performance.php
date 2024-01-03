@@ -1,4 +1,4 @@
-    <h3>Database Perfomance:</h3>
+    <h3 class="expand-all">Database Perfomance:</h3>
 	<?php printf( __( '%s queries in %s seconds.', 'wpfixit_con' ), $query_count, $timer_stop ); ?>
     <p>
     <?php if (empty( $load_times ))
