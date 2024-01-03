@@ -36,6 +36,13 @@ More features coming soon.
 3. Visit the WP Condition Settings, Submit your Google API Key.
 4. Visit WP Condition Menu, Wait for first analysis.
 
+== Screenshots ==
+
+1. Google Pagespeed Performance.
+2. Google Pagespeed Accessibiltiy.
+3. Google Pagespeed Best Practices.
+4. Google Pagespeed Performance SEO.
+5. Server Performance.
 
 == Changelog ==
 
