@@ -142,7 +142,7 @@ class WP_Page_Condition_Stats {
 		$date_m = date("m");
 		$date_day = date("d");
 		$key = isset($wp_conditions_settings['wpcond_googleapis_key']) && trim($wp_conditions_settings['wpcond_googleapis_key']) != '' ? $wp_conditions_settings['wpcond_googleapis_key'] : '';
-		$siteurl = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost' ? 'https://developers.google.com/' : get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
+		$siteurl = 'https://developers.google.com/';//isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost' ? 'https://developers.google.com/' : get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
 		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
 
 
@@ -177,7 +177,6 @@ class WP_Page_Condition_Stats {
 				update_option("pagespeedonline_dates_arr",$pso_dates_arr);
 
 				$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
-				echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
 			}
 
 		}

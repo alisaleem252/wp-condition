@@ -5,7 +5,7 @@ Plugin URI: https://gigsix.com
 Description: Display WP-Condition in Chart for Database Performance, Memory Performance, Site Performance, and Social Performance. Requires PHP 5.2.0+
 Version: 4.0.0
 Author: alisaleem252
-Author URI: http://thesetemplates.info
+Author URI: https://alisaleem252.com
 */
 
 	defined( 'ABSPATH' ) || exit;
