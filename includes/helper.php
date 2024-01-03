@@ -3,10 +3,10 @@ defined( 'ABSPATH' ) || exit;
 
 
 function wpcondi_readmein8($string){    
-    $string = esc_html_e($string);
+    $string = esc_html($string);
         // Extracting all text and URL pairs from the string
         preg_match_all('/\[([^\]]+)\]\(([^)]+)\)/', $string, $matches, PREG_SET_ORDER);
-
+       
         if(is_array($matches)){
             foreach ($matches as $match) {
                 $fullMatch = $match[0];
@@ -20,6 +20,6 @@ function wpcondi_readmein8($string){
                 $string = str_replace($fullMatch, $htmlLink, $string);
             }
         }
-    
+        
     return $string;
 }
