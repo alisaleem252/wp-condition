@@ -146,7 +146,8 @@ class WP_Page_Condition_Stats {
 	 */
 	function display() {
 		global $wpdb;
-
+		$errDisp = false;
+		$errMsg = '';
 		$wp_conditions_settings = get_option('wsc_wp_conditions_settings',array());
 		
 		$date_y = date("Y");
@@ -171,21 +172,25 @@ class WP_Page_Condition_Stats {
 		}
 
 		if($fetchdata_date == 'current' || !isset($result['id'])){
+			$args = array(
+				'timeout'     => 2000,
+			); 
 			$pso_dates_arr[$date_y."_".$date_m."_".$date_day] = $date_y."_".$date_m."_".$date_day;
-			$curl = curl_init($url);
-			curl_setopt($curl, CURLOPT_URL, $url);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-			$result = curl_exec($curl);
+			$response = wp_remote_get($url,$args);
+			if(is_wp_error($response)){
+				$errDisp = true;
+				$errMsg = $response->get_error_message();
+			}
+			else{
+				$result = wp_remote_retrieve_body( $response );
+				$result = json_decode($result,true);
 			
-			$result = json_decode($result,true);
-			
-			update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,$result);
-			update_option("pagespeedonline_dates_arr",$pso_dates_arr);
+				update_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day,$result);
+				update_option("pagespeedonline_dates_arr",$pso_dates_arr);
 
-			$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
-			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
+				$result = get_option("pagespeedonline_".$date_y."_".$date_m."_".$date_day);
+				echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
+			}
 
 		}
 
@@ -228,9 +233,18 @@ class WP_Page_Condition_Stats {
 		// Display the info
 		?>
         <h1>WordPress Condition by <small>alisaleem252</small></h1>
+		<?php 
+				if($errDisp){?>
+				<div id="message" class="error inline notice is-dismissible updated">
+					<strong>Error: </strong> <p><?php echo $errMsg?></p>
+				</div>
 
+				<?php
+				}
+			?>
 
 		<div class="wrap about__container maintabs" style="max-width:100%">
+			
 			<nav class="woo-nav-tab-wrapper nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
 				<a href="javascript:void(0)" class="nav-tab maintab_child nav-tab-active" data-id="wpcond_Page_Speed">Page Speed</a>
 				<a href="javascript:void(0)" class="nav-tab maintab_child" data-id="wpcond_Server_Performance">Server Performance</a>
