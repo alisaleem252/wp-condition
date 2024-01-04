@@ -105,12 +105,12 @@ class WP_Page_Condition_Stats {
 		}
 		$wp_conditions_settings = get_option('wsc_wp_conditions_settings');
 		?>
-		<h2>Settings (WP Conditions)</h2>
+		<h2><?php esc_html_e('Settings (WP Conditions)','wpcondtxtdmn');?></h2>
 		<div class="wrap">
 			<form method="post">
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><label for="wpcond_googleapis_key">Google API Key</label></th>
+						<th scope="row"><label for="wpcond_googleapis_key"><?php esc_html_e('Google API Key','wpcondtxtdmn');?></label></th>
 						<td>
 
 							<input name="wp_conditions_settings[wpcond_googleapis_key]" type="text" id="wpcond_googleapis_key" value="<?php echo (isset($wp_conditions_settings['wpcond_googleapis_key']) ? $wp_conditions_settings['wpcond_googleapis_key'] : 'AIzaSyAtjindnYHHyOuf3vJA0GVCEde5CuKyRic')?>" class="regular-text" />
@@ -221,11 +221,11 @@ class WP_Page_Condition_Stats {
 
 		// Display the info
 		?>
-        <h1>WordPress Condition by <small>alisaleem252</small></h1>
+        <h1><?php esc_html_e('WordPress Condition by','wpcondtxtdmn');?> <small><?php esc_html_e('alisaleem252','wpcondtxtdmn');?></small></h1>
 		<?php 
 				if($errDisp){?>
 				<div id="message" class="error inline notice is-dismissible updated">
-					<strong>Error: </strong> <p><?php echo $errMsg?></p>
+					<strong><?php esc_html_e('Error','wpcondtxtdmn');?>: </strong> <p><?php echo $errMsg?></p>
 				</div>
 
 				<?php
@@ -235,11 +235,11 @@ class WP_Page_Condition_Stats {
 		<div class="wrap about__container maintabs" style="max-width:100%">
 			
 			<nav class="woo-nav-tab-wrapper nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
-				<a href="javascript:void(0)" class="nav-tab maintab_child nav-tab-active" data-id="wpcond_Page_Speed">Page Speed</a>
-				<a href="javascript:void(0)" class="nav-tab maintab_child" data-id="wpcond_Server_Performance">Server Performance</a>
+				<a href="javascript:void(0)" class="nav-tab maintab_child nav-tab-active" data-id="wpcond_Page_Speed"><?php esc_html_e('Page Speed','wpcondtxtdmn');?></a>
+				<a href="javascript:void(0)" class="nav-tab maintab_child" data-id="wpcond_Server_Performance"><?php esc_html_e('Server Performance','wpcondtxtdmn');?></a>
 			</nav>
 			<div class="wpcond_maintab_child" id="wpcond_Page_Speed">
-			<div class="aligncenter">&nbsp;</div><h2>Page Speed</h2><div class="aligncenter">&nbsp;</div>
+			<div class="aligncenter">&nbsp;</div><h2><?php esc_html_e('Page Speed','wpcondtxtdmn');?></h2><div class="aligncenter">&nbsp;</div>
 				<?php require_once(wpcondi_ABSPATH.'/partials/pagespeed/fetched_records.php'); 
 
 					if(isset($result['loadingExperience'])){
@@ -265,10 +265,10 @@ class WP_Page_Condition_Stats {
 
 						<div class="wrap pagespeed_wrap about__container" style="max-width:100%">
 							<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
-								<a href="javascript:void(0)" class="nav-tab tab_child nav-tab-active" data-id="ps_performance">Performance (<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%)</a>
-								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_accessibility">Accessibility (<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%)</a>
-								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_bestpractices">Best Practices (<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%)</a>
-								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_seo">SEO (<?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child nav-tab-active" data-id="ps_performance"><?php esc_html_e('Performance','wpcondtxtdmn');?> (<?php echo ($result['lighthouseResult']['categories']['performance']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_accessibility"><?php esc_html_e('Accessibility','wpcondtxtdmn');?> (<?php echo ($result['lighthouseResult']['categories']['accessibility']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_bestpractices"><?php esc_html_e('Best Practices','wpcondtxtdmn');?> (<?php echo ($result['lighthouseResult']['categories']['best-practices']['score'])*100 ?>%)</a>
+								<a href="javascript:void(0)" class="nav-tab tab_child" data-id="ps_seo"><?php esc_html_e('SEO','wpcondtxtdmn');?> (<?php echo ($result['lighthouseResult']['categories']['seo']['score'])*100 ?>%)</a>
 							</nav>
 							<?php
 
@@ -286,7 +286,7 @@ class WP_Page_Condition_Stats {
 
 			</div><!-- #wpcond_Page_Speed -->
 			<div class="wpcond_maintab_child" id="wpcond_Server_Performance" style="display:none">
-				<div class="aligncenter">&nbsp;</div><h2>Server Performance</h2><div class="aligncenter">&nbsp;</div>
+				<div class="aligncenter">&nbsp;</div><h2><?php esc_html_e('Server Performance','wpcondtxtdmn');?></h2><div class="aligncenter">&nbsp;</div>
 				<table class="wp-list-table widefat fixed striped">
 					<tr>
 						<th valign="top"><?php require_once(wpcondi_ABSPATH.'/partials/serverperformance/db_performance.php');?></th>
