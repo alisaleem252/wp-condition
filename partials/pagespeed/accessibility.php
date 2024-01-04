@@ -51,12 +51,27 @@
                     foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
                         if(isset($audits_arr['details']["type"]) && $audits_arr['details']["type"] == 'table' &&  isset($audits_arr['score']) && $audits_arr['score'] == 0){?>
                             <div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-                                <div class="postbox-header">
+                                <div class="postbox-header" <?php echo ($audits_arr['score'] >= 0.9 ? 'style="background:orange;color:white;" ': ($audits_arr['score'] <= 0.9 ? 'style="background:#992a2a;color:white;"' : '') );?>>
                                     <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
                                     <button type="button" class="handlediv">&vArr;</button>
                                 </div>
                                 <div class="inside">
                                     <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                                    <?php 
+                                        if(isset($audits_arr['details']['items'])){
+                                            echo '<p>';
+                                            echo $audits_key;
+                                            foreach($audits_arr['details']['items'] as $item){
+                                            foreach($item as $key => $value){
+                                                    echo '<p>';
+                                                    echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                                    echo '</p>';
+                                            }
+                                            echo '<hr>';
+                                            }
+                                            echo '</p>';
+                                        };
+                                        ?>
                                 </div>
                             </div>
             <?php
@@ -71,12 +86,27 @@
                     foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
                         if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'manual'){?>
                             <div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-                                <div class="postbox-header">
+                                <div class="postbox-header" style="background:orange;color:white;">
                                     <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
                                     <button type="button" class="handlediv">&vArr;</button>
                                 </div>
                                 <div class="inside">
                                     <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                                    <?php 
+                                        if(isset($audits_arr['details']['items'])){
+                                            echo '<p>';
+                                            echo $audits_key;
+                                            foreach($audits_arr['details']['items'] as $item){
+                                            foreach($item as $key => $value){
+                                                    echo '<p>';
+                                                    echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                                    echo '</p>';
+                                            }
+                                            echo '<hr>';
+                                            }
+                                            echo '</p>';
+                                        };
+                                        ?>
                                 </div>
                             </div>
             <?php
@@ -90,7 +120,7 @@
                     foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
                         if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'notApplicable'){?>
                             <div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-                                <div class="postbox-header">
+                                <div class="postbox-header" >
                                     <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
                                     <button type="button" class="handlediv">&vArr;</button>
                                 </div>
@@ -98,6 +128,21 @@
                                     <p><?php
                                     //var_dump($audits_arr['description']);
                                     echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                                    <?php 
+                                    if(isset($audits_arr['details']['items'])){
+                                        echo '<p>';
+                                        echo $audits_key;
+                                        foreach($audits_arr['details']['items'] as $item){
+                                        foreach($item as $key => $value){
+                                                echo '<p>';
+                                                echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                                echo '</p>';
+                                        }
+                                        echo '<hr>';
+                                        }
+                                        echo '</p>';
+                                    };
+                                    ?>
                                 </div>
                             </div>
             <?php

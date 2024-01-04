@@ -63,6 +63,21 @@
                         </div>
                         <div class="inside">
                             <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                            <?php 
+                            if(isset($result['lighthouseResult']["audits"][$audits_arr['id']]['details']['items'])){
+                                echo '<p>';
+                                echo $audits_arr['id'];
+                                foreach($result['lighthouseResult']["audits"][$audits_arr['id']]['details']['items'] as $item){
+                                foreach($item as $key => $value){
+                                        echo '<p>';
+                                        echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                        echo '</p>';
+                                }
+                                echo '<hr>';
+                                }
+                                echo '</p>';
+                            };
+                            ?>
                         </div>
                     </div>
             <?php
@@ -77,12 +92,27 @@
                 foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
                     if($result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'manual'){?>
                         <div id="seo_manualchk_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
-                            <div class="postbox-header">
+                            <div class="postbox-header" style="background:orange;color:white;">
                                 <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></strong>
                                 <button type="button" class="handlediv">&vArr;</button>
                             </div>
                             <div class="inside">
                                 <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                                <?php 
+                                if(isset($result['lighthouseResult']["audits"][$audits_arr['id']]['details']['items'])){
+                                    echo '<p>';
+                                    echo $audits_arr['id'];
+                                    foreach($result['lighthouseResult']["audits"][$audits_arr['id']]['details']['items'] as $item){
+                                    foreach($item as $key => $value){
+                                            echo '<p>';
+                                            echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                            echo '</p>';
+                                    }
+                                    echo '<hr>';
+                                    }
+                                    echo '</p>';
+                                };
+                                ?>
                             </div>
                         </div>
             <?php
@@ -99,12 +129,27 @@
                 foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
                     if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'binary' && isset($audits_arr['score']) && $audits_arr['score'] == 1){?>
                         <div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-                            <div class="postbox-header">
+                            <div class="postbox-header" style="background:green;color:white;">
                                 <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
                                 <button type="button" class="handlediv">&vArr;</button>
                             </div>
                             <div class="inside">
                                 <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                                <?php 
+                                if(isset($audits_arr['details']['items'])){
+                                    echo '<p>';
+                                    echo $audits_key;
+                                    foreach($audits_arr['details']['items'] as $item){
+                                    foreach($item as $key => $value){
+                                            echo '<p>';
+                                            echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                            echo '</p>';
+                                    }
+                                    echo '<hr>';
+                                    }
+                                    echo '</p>';
+                                };
+                                ?>
                             </div>
                         </div>
             <?php
@@ -127,6 +172,21 @@
                         </div>
                         <div class="inside">
                             <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                            <?php 
+                            if(isset($result['lighthouseResult']["audits"][$audits_arr['id']]['details']['items'])){
+                                echo '<p>';
+                                echo $audits_arr['id'];
+                                foreach($result['lighthouseResult']["audits"][$audits_arr['id']]['details']['items'] as $item){
+                                foreach($item as $key => $value){
+                                        echo '<p>';
+                                        echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                        echo '</p>';
+                                }
+                                echo '<hr>';
+                                }
+                                echo '</p>';
+                            };
+                            ?>
                         </div>
                     </div>
             <?php

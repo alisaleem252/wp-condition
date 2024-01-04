@@ -196,8 +196,8 @@ class WP_Page_Condition_Stats {
 		//echo '<pre>';print_r($pso_dates_arr);echo '</pre>';
 
 		// Get values we're displaying
-		include( wpcondi_ABSPATH . '/lib/social.php');         
-		$obj=new WP_Condition_shareCount(site_url()); 
+		include( wpcondi_ABSPATH . '/lib/social.php');         	
+		$obj=new WP_Condition_shareCount($siteurl); 
 		$timer_stop 		= timer_stop(0);
 		$query_count 		= get_num_queries();
 		$memory_usage 		= round( (int) $this->convert_bytes_to_hr( memory_get_usage() ), 2 );

@@ -399,13 +399,28 @@
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
 			if(isset($audits_arr['details']["type"]) && $audits_arr['details']["type"] == 'opportunity' && trim($audits_arr['score']) != '' && $audits_arr['score'] <= 0.9){?>
 				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-					<div class="postbox-header">
+					<div class="postbox-header" <?php echo ($audits_arr['score'] >= 0.9 ? 'style="background:orange;color:white;" ': ($audits_arr['score'] <= 0.9 ? 'style="background:#992a2a;color:white;"' : '') );?>>
 						<strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
 						<button type="button" class="handlediv">&vArr;</button>
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score']  ?></strong></p>
 						<p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                        <?php 
+                        if(isset($audits_arr['details']['items'])){
+                            echo '<p>';
+                            echo $audits_key;
+                            foreach($audits_arr['details']['items'] as $item){
+                               foreach($item as $key => $value){
+                                    echo '<p>';
+                                    echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                    echo '</p>';
+                               }
+                               echo '<hr>';
+                            }
+                            echo '</p>';
+                        };
+                        ?>
 					</div>
 				</div>
 <?php
@@ -416,17 +431,32 @@
 
 	<h3 class="expand-all">DIAGNOSTICS</h3>
 	<?php 
-		
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
+            
 			if(isset($audits_arr['details']["type"]) && ($audits_arr['details']["type"] == 'table' || $audits_arr['details']["type"] == 'criticalrequestchain') && trim($audits_arr['score']) != 1){?>
 				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-					<div class="postbox-header">
+					<div class="postbox-header" <?php echo ($audits_arr['score'] >= 0.9 ? 'style="background:orange;color:white;" ': ($audits_arr['score'] <= 0.9 ? 'style="background:#992a2a;color:white;"' : '') );?> >
 						<strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
 						<button type="button" class="handlediv">&vArr;</button>
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
 						<p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                        <?php 
+                        if(isset($audits_arr['details']['items'])){
+                            echo '<p>';
+                            echo $audits_key;
+                            foreach($audits_arr['details']['items'] as $item){
+                               foreach($item as $key => $value){
+                                    echo '<p>';
+                                    echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                    echo '</p>';
+                               }
+                               echo '<hr>';
+                            }
+                            echo '</p>';
+                        };
+                        ?>
 					</div>
 				</div>
 <?php
@@ -442,13 +472,28 @@
 		foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
 			if(isset($audits_arr['details']["type"]) &&  trim($audits_arr['score']) != '' && $audits_arr['score'] > 0.9){?>
 				<div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
-					<div class="postbox-header">
+					<div class="postbox-header" style="background:green;color:white;">
 						<strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
 						<button type="button" class="handlediv">&vArr;</button>
 					</div>
 					<div class="inside">
 						<p><strong><?php echo isset($audits_arr['displayValue']) ? $audits_arr['displayValue'] : 'Score: '.$audits_arr['score'] ?></strong></p>
 						<p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                        <?php 
+                        if(isset($audits_arr['details']['items'])){
+                            echo '<p>';
+                            echo $audits_key;
+                            foreach($audits_arr['details']['items'] as $item){
+                               foreach($item as $key => $value){
+                                    echo '<p>';
+                                    echo '<strong>'.$key.'</strong> : '.(is_array($value) ? esc_html(json_encode($value)) : $value);
+                                    echo '</p>';
+                               }
+                               echo '<hr>';
+                            }
+                            echo '</p>';
+                        };
+                        ?>
 
 					</div>
 				</div>
