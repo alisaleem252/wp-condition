@@ -1,8 +1,8 @@
-    <h3>Database Perfomance:</h3>
+    <h3><?php esc_html_e('Database Perfomance','wpcondtxtdmn');?>:</h3>
 	<?php printf( __( '%s queries in %s seconds.', 'wpfixit_con' ), $query_count, $timer_stop ); ?>
     <p>
     <?php if (empty( $load_times ))
-            echo 'Reload this Page to see Chart';
+             esc_html_e('Reload this Page to see Chart','wpcondtxtdmn');
             function wpo_fs_info($filesize)
     {
         $bytes = array(
@@ -28,7 +28,7 @@
                 $dbsize += $row->Data_length + $row->Index_length;
             }
         $dbsize = wpo_fs_info($dbsize);
-        echo 'Database Size '.$dbsize['size'].$dbsize['type'];
+         esc_html_e('Database Size ','wpcondtxtdmn').$dbsize['size'].$dbsize['type'];
         
         
             ?>
@@ -38,8 +38,8 @@
 	    var ctx = document.getElementById("svperform");
         new Chart(ctx ,{	type: 'pie', 
                             data: {	labels: [
-                                                'Queries',
-                                                'Time'
+                                                '<?php esc_html_e('Queries','wpcondtxtdmn');?>',
+                                                '<?php esc_html_e('Time','wpcondtxtdmn');?>'
                                             ],
                                     datasets: [{ data: [<?php echo $query_count ?>, <?php echo $timer_stop ?>],
                                                 backgroundColor: ['lightgray','black'],
