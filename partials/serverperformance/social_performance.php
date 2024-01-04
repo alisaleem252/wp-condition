@@ -1,5 +1,5 @@
-    <h3 class="expand-all">Social Performance:</h3>
-    <p>Using Sharethis Buttons</p>
+    <h3><?php esc_html_e('Social Performance','wpcondtxtdmn');?>:</h3>
+    <p><?php esc_html_e('Using Sharethis Buttons','wpcondtxtdmn');?></p>
                 
     <?php $social_counts = $obj->get_social_counts(); //1 ?>
     <p><canvas id="socialperform"></canvas></p>
@@ -10,7 +10,7 @@
         new Chart(document.getElementById("socialperform") ,{	type: 'bar', 
 						data: {	labels: [<?php foreach($social_counts['shares'] as $key => $social_count) echo '"'.$key.'",' ?> ],
 								datasets: [{ data: [ <?php foreach($social_counts['shares'] as $key => $social_count) echo $social_count.', ' ?>],
-												label: 'Sharethis Total Shares'
+												label: '<?php esc_html_e('Sharethis Total Shares','wpcondtxtdmn');?>'
 							//				 backgroundColor: ['lightgreen','orange'],
 											 
 											 }] 

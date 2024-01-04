@@ -145,6 +145,7 @@ class WP_Page_Condition_Stats {
 		$siteurl = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost' ? 'https://developers.google.com/' : get_bloginfo('url').'/';  // 'https://developers.google.com'  'https://github.com' get_bloginfo('url').'/';
 		$url = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$siteurl&key=$key&category=accessibility&category=performance&category=pwa&category=best-practices&category=seo";
 
+		$ps_data_fetched_1st = get_option("pagespeed_data_fetched_1st","no");
 
 		$pso_dates_arr = get_option("pagespeedonline_dates_arr",array(date("Y_m_d")=>date("Y_m_d")));
 		$pso_dates_arr = $pso_dates_arr && is_array($pso_dates_arr) ? $pso_dates_arr : array();
@@ -159,7 +160,7 @@ class WP_Page_Condition_Stats {
 			echo "<meta http-equiv=refresh content=0;url=".admin_url('admin.php?page=wp-conditions')." />";
 		}
 
-		if($fetchdata_date == 'current' || !isset($result['id'])){
+		if($fetchdata_date == 'current' || $ps_data_fetched_1st == "no"){
 			$args = array(
 				'timeout'     => 2000,
 			); 
@@ -170,6 +171,7 @@ class WP_Page_Condition_Stats {
 				$errMsg = $response->get_error_message();
 			}
 			else{
+				update_option("pagespeed_data_fetched_1st","yes");
 				$result = wp_remote_retrieve_body( $response );
 				$result = json_decode($result,true);
 			
@@ -240,7 +242,7 @@ class WP_Page_Condition_Stats {
 			<div class="aligncenter">&nbsp;</div><h2>Page Speed</h2><div class="aligncenter">&nbsp;</div>
 				<?php require_once(wpcondi_ABSPATH.'/partials/pagespeed/fetched_records.php'); 
 
-					if(isset($result['id'])){
+					if(isset($result['loadingExperience'])){
 						$clss_meval = $result['loadingExperience']['metrics']['CUMULATIVE_LAYOUT_SHIFT_SCORE']['percentile'];
 						$clss_meval_str = strlen($clss_meval) <= 3 ? $clss_meval/100 : $clss_meval/1000;
 
