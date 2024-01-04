@@ -1,5 +1,5 @@
     <div class="wpcond_tab_child" id="ps_seo" style="display:none">
-		<h2 class="aligncenter">SEO</h2>
+		<h2 class="aligncenter"><?php esc_html_e('SEO','wpcondtxtdmn');?></h2>
 
         <p>
         <canvas id="chart_seo_sec" width="300px" height="200px"></canvas>
@@ -9,9 +9,9 @@
             new Chart(seo_sec, {
             type: 'doughnut',
             data: {
-            labels: ["SEO","Less"],
+            labels: ["<?php esc_html_e('SEO','wpcondtxtdmn');?>","<?php esc_html_e('Less','wpcondtxtdmn');?>"],
             datasets: [{
-                label: 'SEO',
+                label: '<?php esc_html_e('SEO','wpcondtxtdmn');?>',
                 backgroundColor: ["green"],
                 data: [<?php echo $result['lighthouseResult']['categories']['seo']['score']*100 ?>,100 - <?php echo $result['lighthouseResult']['categories']['seo']['score']*100 ?>]
             }]
@@ -50,7 +50,7 @@
 
         <p><?php echo ($result['lighthouseResult']['categories']['seo']['description'])?></p>
         <?php if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-crawl'):?>
-            <h3 class="expand-all">Crawling and Indexing</h3>
+            <h3><?php esc_html_e('Crawling and Indexing','wpcondtxtdmn');?></h3>
             <?php 
         endif; // seo-crawl
 
@@ -58,11 +58,11 @@
                 if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-crawl' && (float) $result['lighthouseResult']["audits"][$audits_arr['id']]['score'] < 1.0){?>
                     <div id="seo_crawl_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
                         <div class="postbox-header">
-                            <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></strong>
+                            <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title'],'wpcondtxtdmn');?></strong>
                             <button type="button" class="handlediv">&vArr;</button>
                         </div>
                         <div class="inside">
-                            <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                            <p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description'],'wpcondtxtdmn');?></p>
                         </div>
                     </div>
             <?php
@@ -71,18 +71,18 @@
             ?>	
 
 
-            <h3 class="expand-all">ADDITIONAL ITEMS TO MANUALLY CHECK</h3>
+            <h3><?php esc_html_e('ADDITIONAL ITEMS TO MANUALLY CHECK','wpcondtxtdmn');?></h3>
             <?php 
                 
                 foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
                     if($result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'manual'){?>
                         <div id="seo_manualchk_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
                             <div class="postbox-header">
-                                <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></strong>
+                                <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title'],'wpcondtxtdmn');?></strong>
                                 <button type="button" class="handlediv">&vArr;</button>
                             </div>
                             <div class="inside">
-                                <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                                <p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description'],'wpcondtxtdmn');?></p>
                             </div>
                         </div>
             <?php
@@ -93,18 +93,18 @@
 
 
 
-            <h3 class="expand-all">PASSED AUDITS</h3>
+            <h3><?php esc_html_e('PASSED AUDITS','wpcondtxtdmn');?></h3>
             <?php 
                 
                 foreach ($result['lighthouseResult']["audits"] as $audits_key => $audits_arr) {
                     if(isset($audits_arr['scoreDisplayMode']) && $audits_arr['scoreDisplayMode'] == 'binary' && isset($audits_arr['score']) && $audits_arr['score'] == 1){?>
                         <div id="perf_opportun_<?php echo $audits_key ?>" class="postbox closed">
                             <div class="postbox-header">
-                                <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title']) ?></strong>
+                                <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($audits_arr['title'],'wpcondtxtdmn');?></strong>
                                 <button type="button" class="handlediv">&vArr;</button>
                             </div>
                             <div class="inside">
-                                <p><?php echo wpcondi_readmein8($audits_arr['description']) ?></p>
+                                <p><?php esc_html_e($audits_arr['description'],'wpcondtxtdmn');?></p>
                             </div>
                         </div>
             <?php
@@ -115,18 +115,18 @@
 
 
 
-            <h3 class="expand-all">NOT APPLICABLE</h3>
+            <h3><?php esc_html_e('NOT APPLICABLE','wpcondtxtdmn');?></h3>
             <?php 
 
             foreach ($result['lighthouseResult']['categories']['seo']['auditRefs'] as $audits_arr) {
                 if(isset($audits_arr['group']) && $audits_arr['group'] == 'seo-mobile' && $result['lighthouseResult']["audits"][$audits_arr['id']]['scoreDisplayMode'] == 'notApplicable'){?>
                     <div id="seo_crawl_<?php echo $result['lighthouseResult']["audits"][$audits_arr['id']]['id'] ?>" class="postbox closed">
                         <div class="postbox-header">
-                            <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title']) ?></strong>
+                            <strong class="hndle ui-sortable-handle">&nbsp; <?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['title'],'wpcondtxtdmn');?></strong>
                             <button type="button" class="handlediv">&vArr;</button>
                         </div>
                         <div class="inside">
-                            <p><?php echo wpcondi_readmein8($result['lighthouseResult']["audits"][$audits_arr['id']]['description']) ?></p>
+                            <p><?php esc_html_e($result['lighthouseResult']["audits"][$audits_arr['id']]['description'],'wpcondtxtdmn');?></p>
                         </div>
                     </div>
             <?php

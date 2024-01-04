@@ -1,4 +1,4 @@
-<h3 class="expand-all">Site Performance:</h3>
+<h3><?php esc_html_e('Site Performance','wpcondtxtdmn');?>:</h3>
 <p><?php printf( __( 'Average Server load time of %s (%s runs).', 'wpfixit_con' ), $average_load_time, sizeof( $load_times ) ); ?></p>
 <p><canvas id="siperform"></canvas></p>
 
@@ -11,13 +11,13 @@
 										],
 			datasets : [{ data : [ <?php foreach ($load_times as $loadtime) echo $loadtime['time']. ','?>  ],
 							backgroundColor : [<?php foreach ($load_times as $key => $loadtime) echo '"#D'.$key .'7041" , '?>],
-							label : 'Seconds'
+							label : '<?php esc_html_e('Seconds','wpcondtxtdmn');?>'
 							
 							
 						},
 						{ data : [ <?php foreach ($load_times as $loadtime) echo '"'.$loadtime['url'] .'" ,'?>  ],
 							backgroundColor : [<?php foreach ($load_times as $key => $loadtime) echo '"#D'.$key .'7041" , '?>],
-							label : 'URL'
+							label : '<?php esc_html_e('URL','wpcondtxtdmn');?>'
 							
 							
 						}]
